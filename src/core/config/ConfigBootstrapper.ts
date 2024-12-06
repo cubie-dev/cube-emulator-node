@@ -21,4 +21,8 @@ export class ConfigBootstrapper extends Bootstrapper {
             .to(Repository)
             .inSingletonScope();
     }
+
+    async onEmulatorStop(): Promise<void> {
+        console.log('stopped');
+    }
 }

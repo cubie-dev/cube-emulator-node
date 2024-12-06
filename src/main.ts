@@ -8,7 +8,7 @@ const dirname = path.dirname(thisFileName);
 
 const emulator = await Emulator.create(dirname);
 
-process.on('beforeExit', () => {
+process.on('exit', () => {
     emulator.stop().catch(console.error);
 })
 

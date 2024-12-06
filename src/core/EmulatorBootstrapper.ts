@@ -10,6 +10,7 @@ export class EmulatorBootstrapper {
         ConfigBootstrapper,
         NetworkBootstrapper
     ];
+    private _bootstrappedBootstrappers: Bootstrapper[] = [];
 
     public constructor(
         private emulator: IEmulator
@@ -17,22 +18,39 @@ export class EmulatorBootstrapper {
     }
 
     public async bootstrap(): Promise<EmulatorBootstrapper> {
-        await Promise.all<Bootstrapper>(this._bootstrappers.map(async (bootstrapper) => {
-            const instance = new bootstrapper(this.emulator);
-
-            await instance.onEmulatorBootstrapping?.();
-
-            return instance;
-        }));
-
+        await this.bootstrapBootstrappers();
         this.emulator.events.emit('bootstrapped');
 
         return this;
     }
 
-    private bootstrapBootstrappers()
+    private async bootstrapBootstrappers(): Promise<void> {
+        this._bootstrappedBootstrappers = await Promise.all<Bootstrapper>(
+            this._bootstrappers.map(async (bootstrapper) => {
+                const instance = new bootstrapper(this.emulator);
+
+                await instance.onEmulatorBootstrapping?.();
+
+                return instance;
+            }));
+    }
+
+    private async runBootstrappersOnEmulatorStart(): Promise<void> {
+        await Promise.all(
+            this._bootstrappedBootstrappers.map(async (bootstrapper) => {
+                await bootstrapper.onEmulatorStart?.();
+            }));
+    }
+
+    private async runBootstrappersOnEmulatorStop(): Promise<void> {
+        await Promise.all(
+            this._bootstrappedBootstrappers.map(async (bootstrapper) => {
+                await bootstrapper.onEmulatorStop?.();
+            }));
+    }
 
     public async start(): Promise<void> {
+        await this.runBootstrappersOnEmulatorStart();
         this.emulator.container
             .get<ISocketServer>(SOCKET_SERVER_TOKEN)
             .start();
@@ -41,6 +59,7 @@ export class EmulatorBootstrapper {
     }
 
     public async stop(): Promise<void> {
+        this.runBootstrappersOnEmulatorStop();
         this.emulator.events.emit('stopped');
     }
 }

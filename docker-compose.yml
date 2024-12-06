@@ -1,0 +1,11 @@
+services:
+  emulator:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    volumes:
+      - ./:/emulator
+    command:
+      - "npm"
+      - "run"
+      - "dev"

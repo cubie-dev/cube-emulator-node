@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "ES2023",
+        ],
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "target": "ES2023",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    }
+}

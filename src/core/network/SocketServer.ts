@@ -2,6 +2,7 @@ import { inject, injectable } from 'inversify';
 import { createServer, Server, Socket } from 'node:net';
 import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repository';
 import { ISocketServer } from '../../api/core/network/SocketServer';
+import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
 
 @injectable()
 export class SocketServer implements ISocketServer {
@@ -9,6 +10,7 @@ export class SocketServer implements ISocketServer {
 
     public constructor(
         @inject(CONFIG_REPOSITORY_TOKEN) private config: IRepository,
+        @inject(LOGGER_TOKEN) private logger: ILogger
     ) {
     }
 
@@ -32,7 +34,7 @@ export class SocketServer implements ISocketServer {
     }
 
     private onStartedListening() {
-        console.log(`Started listening on port 3333`)
+        this.logger.log('Server', 'info', 'Server started listening');
     }
 
     private onClientConnected(socket: Socket) {

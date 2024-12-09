@@ -4,11 +4,11 @@ import { Class } from 'utility-types';
 import { ReleaseVersionEventHandler } from './handlers/ReleaseVersionEventHandler';
 import { PingEventHandler } from './handlers/PingEventHandler';
 
-const eventHandlersMap = new Map<number, Class<EventHandler>>();
+const eventHandlerMap = new Map<number, Class<EventHandler>>();
 
-eventHandlersMap.set(EventHeader.RELEASE_VERSION, ReleaseVersionEventHandler);
-eventHandlersMap.set(EventHeader.CLIENT_PING, PingEventHandler);
+eventHandlerMap.set(EventHeader.RELEASE_VERSION, ReleaseVersionEventHandler);
+eventHandlerMap.set(EventHeader.CLIENT_PING, PingEventHandler);
 
 export {
-    eventHandlersMap
+    eventHandlerMap
 }

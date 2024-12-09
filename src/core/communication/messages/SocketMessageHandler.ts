@@ -1,11 +1,15 @@
 import { ISocketMessageHandler } from '../../../api/core/communication/MessageHandler';
 import { Client } from '../Client';
 import { inject } from 'inversify';
-import { IEventHandlerRegistry, EVENT_HANDLER_REGISTRY_TOKEN } from '../../../api/core/communication/IncomingMessageHandlerRegistry';
+import {
+    EVENT_HANDLER_REGISTRY_TOKEN,
+    IEventHandlerRegistry
+} from '../../../api/core/communication/IncomingMessageHandlerRegistry';
 import { EMULATOR_TOKEN, IEmulator } from '../../../api/core/Emulator';
 import { ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger';
 import { Response } from './responses/Response';
 import { Codec } from '../Codec';
+import { LogLevel } from '../../logging/LogLevel';
 
 // TODO rename
 export class SocketMessageHandler implements ISocketMessageHandler {
@@ -19,13 +23,13 @@ export class SocketMessageHandler implements ISocketMessageHandler {
     public handle(client: Client, data: Buffer): void {
         const clientRequest = this._codec.decode(data);
 
-        this.logger.log('Network', 'info', `Got header: ${clientRequest.header}`);
+        this.logger.log('Network', LogLevel.INFO, `Got header: ${clientRequest.header}`);
 
         try {
             const handler = this.handlerRepository.getByHeader(clientRequest.header);
 
             if (!handler) {
-                this.logger.log('Network', 'warn', `No handler found for header: ${clientRequest.header}`);
+                this.logger.log('Network', LogLevel.WARN, `No handler found for header: ${clientRequest.header}`);
                 return;
             }
 
@@ -39,7 +43,7 @@ export class SocketMessageHandler implements ISocketMessageHandler {
 
             this.sendResponse(client, response);
         } catch (e: unknown) {
-            this.logger.log('Network', 'error', `Error while handling: ${clientRequest.header}`);
+            this.logger.log('Network', LogLevel.ERROR, `Error while handling: ${clientRequest.header}`);
         }
     }
 
@@ -51,7 +55,7 @@ export class SocketMessageHandler implements ISocketMessageHandler {
                 return;
             }
 
-            this.logger.log('Network', 'error', `Error while sending response: ${err}`);
+            this.logger.log('Network', LogLevel.ERROR, `Error while sending response: ${err}`);
         });
     }
 }

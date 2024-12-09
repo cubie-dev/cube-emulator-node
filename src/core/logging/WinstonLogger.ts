@@ -11,6 +11,12 @@ export class WinstonLogger implements ILogger {
         this._winston = createLogger({
             transports: this.createLoggerTransport(),
             format: this.createFormat(),
+            levels: {
+                error: 0,
+                warn: 1,
+                info: 2,
+                success: 3,
+            }
         })
     }
 
@@ -21,14 +27,22 @@ export class WinstonLogger implements ILogger {
                 format: format.combine(format.uncolorize()),
                 filename: 'emulator.logs'
             }),
-            new transports.Console()
+            new transports.Console({
+                level: 'success',
+            })
         ];
     }
 
     private createFormat(): Format {
         return format.combine(
             format.colorize({
-                level: true,
+                all: true,
+                colors: {
+                    error: 'red',
+                    warn: 'yellow',
+                    info: 'blue',
+                    success: 'green'
+                }
             }),
             format.timestamp({
                 format: 'YYYY-MM-DD HH:mm:ss',

@@ -1,10 +1,11 @@
 import { inject, injectable } from 'inversify';
-import { Server, WebSocketServer, WebSocket, RawData } from 'ws';
+import { RawData, Server, WebSocket, WebSocketServer } from 'ws';
 import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repository';
 import { ISocketServer } from '../../api/core/communication/SocketServer';
 import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
 import { Client } from './Client';
 import { ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';
+import { LogLevel } from '../logging/LogLevel';
 
 @injectable()
 export class SocketServer implements ISocketServer {
@@ -28,7 +29,7 @@ export class SocketServer implements ISocketServer {
     }
 
     public stop(): void {
-        this.logger.log('Server', 'info', 'Server stopping...');
+        this.logger.log('Server', LogLevel.INFO, 'Stopping...');
     }
 
     private createServer(): void {
@@ -36,7 +37,6 @@ export class SocketServer implements ISocketServer {
             port: this.config.get<number>('network.port', 3333),
             host: this.config.get<string>('network.host', '0.0.0.0'),
             verifyClient: (info, cb) => {
-                console.log(info.origin);
                 // TODO verify client
                 cb(true);
             },
@@ -44,10 +44,13 @@ export class SocketServer implements ISocketServer {
     }
 
     private onStartedListening() {
+        const host = this.config.get<string>('network.host', '0.0.0.0');
+        const port = this.config.get<number>('network.port', 3333);
+
         this.logger.log(
             'Server',
-            'info',
-            `Server started listening on ${this.config.get<string>('network.host', '0.0.0.0')}:${this.config.get<number>('network.port', 3333)}`
+            LogLevel.INFO,
+            `Server started listening on ${host}:${port}`
         );
     }
 

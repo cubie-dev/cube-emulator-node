@@ -6,10 +6,15 @@ import { SocketMessageHandler } from './messages/SocketMessageHandler';
 import { EventAndResponsesBootstrapper } from './EventAndResponsesBootstrapper';
 import { Class } from 'utility-types';
 import { Codec } from './Codec';
+import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
+import { LogLevel } from '../logging/LogLevel';
 
 export class NetworkBootstrapper extends Bootstrapper {
     public async onEmulatorBootstrapping(): Promise<void> {
         this.registerBindings();
+
+        this.emulator.container.get<ILogger>(LOGGER_TOKEN)
+            .log('Network', LogLevel.INFO, 'Bootstrapping...');
     }
 
     public async onEmulatorStop(): Promise<void> {

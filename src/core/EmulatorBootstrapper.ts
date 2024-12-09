@@ -6,6 +6,7 @@ import { ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/communication/So
 import { NetworkBootstrapper } from './communication/NetworkBootstrapper';
 import { LoggingBootstrapper } from './logging/LoggingBootstrapper';
 import { Class } from 'utility-types';
+import { DatabaseBootstrapper } from './database/DatabaseBootstrapper';
 
 export class EmulatorBootstrapper {
     /**
@@ -14,7 +15,8 @@ export class EmulatorBootstrapper {
     private _bootstrappers: Class<Bootstrapper>[] = [
         LoggingBootstrapper,
         ConfigBootstrapper,
-        NetworkBootstrapper
+        NetworkBootstrapper,
+        DatabaseBootstrapper,
     ];
     /**
      * Bootstrappers that have been bootstrapped

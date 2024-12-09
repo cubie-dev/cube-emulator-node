@@ -12,16 +12,20 @@
     "license": "ISC",
     "dependencies": {
         "inversify": "^6.1.6",
+        "inversify-binding-decorators": "^4.0.0",
         "inversify-inject-decorators": "^3.1.0",
         "lodash-es": "^4.17.21",
         "reflect-metadata": "^0.2.2",
         "ts-node": "^10.9.2",
-        "winston": "^3.17.0"
+        "utility-types": "^3.11.0",
+        "winston": "^3.17.0",
+        "ws": "^8.18.0"
     },
     "devDependencies": {
         "@types/lodash": "^4.17.13",
         "@types/lodash-es": "^4.17.12",
         "@types/node": "^22.10.1",
+        "@types/ws": "^8.5.13",
         "tsx": "^4.19.2",
         "typescript": "^5.7.2"
     }

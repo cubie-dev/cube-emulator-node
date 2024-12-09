@@ -1,4 +1,3 @@
-import "reflect-metadata";
 import { Emulator } from './core/Emulator';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';

@@ -1,4 +1,5 @@
 import { IEmulator } from '../../api/core/Emulator';
+import { Class } from 'utility-types';
 
 export class Bootstrapper {
     public constructor(
@@ -9,4 +10,7 @@ export class Bootstrapper {
     public async onEmulatorBootstrapping(): Promise<void> {}
     public async onEmulatorStart(): Promise<void> {}
     public async onEmulatorStop(): Promise<void> {}
+    public bootstraps(): Class<Bootstrapper>[] {
+        return [];
+    }
 }

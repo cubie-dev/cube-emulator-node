@@ -1,6 +1,8 @@
 import { ILogger } from '../../api/core/logger/Logger';
 import { createLogger, Logger, format, transports } from 'winston';
 import { Format } from 'logform'
+import { Transports } from 'winston/lib/winston/transports';
+import * as Transport from 'winston-transport';
 
 export class WinstonLogger implements ILogger {
     private _winston: Logger;
@@ -12,7 +14,7 @@ export class WinstonLogger implements ILogger {
         })
     }
 
-    private createLoggerTransport(): any[] {
+    private createLoggerTransport(): Transport[] {
         return [
             new transports.File({
                 level: 'warning',

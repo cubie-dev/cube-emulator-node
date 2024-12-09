@@ -5,6 +5,8 @@ services:
         dockerfile: Dockerfile
     volumes:
       - ./:/emulator
+    ports:
+      - "3333:3333"
     command:
       - "npm"
       - "run"

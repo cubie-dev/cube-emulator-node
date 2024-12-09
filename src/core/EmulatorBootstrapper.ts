@@ -2,15 +2,16 @@ import { interfaces } from 'inversify';
 import { ConfigBootstrapper } from './config/ConfigBootstrapper';
 import { IEmulator } from '../api/core/Emulator';
 import { Bootstrapper } from './bootstrap/Bootstrapper';
-import { ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/network/SocketServer';
-import { NetworkBootstrapper } from './network/NetworkBootstrapper';
+import { ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/communication/SocketServer';
+import { NetworkBootstrapper } from './communication/NetworkBootstrapper';
 import { LoggingBootstrapper } from './logging/LoggingBootstrapper';
+import { Class } from 'utility-types';
 
 export class EmulatorBootstrapper {
     /**
      * Bootstrappers that will be run on initial emulator start up
      */
-    private _bootstrappers: interfaces.Newable<Bootstrapper>[] = [
+    private _bootstrappers: Class<Bootstrapper>[] = [
         LoggingBootstrapper,
         ConfigBootstrapper,
         NetworkBootstrapper
@@ -26,21 +27,29 @@ export class EmulatorBootstrapper {
     }
 
     public async bootstrap(): Promise<EmulatorBootstrapper> {
-        await this.bootstrapBootstrappers();
+        await this.bootstrapBootstrappers(this._bootstrappers);
         this.emulator.events.emit('bootstrapped');
 
         return this;
     }
 
-    private async bootstrapBootstrappers(): Promise<void> {
-        this._bootstrappedBootstrappers = await Promise.all<Bootstrapper>(
-            this._bootstrappers.map(async (bootstrapper): Promise<Bootstrapper> => {
-                const instance = new bootstrapper(this.emulator);
+    private async bootstrapBootstrappers(bootstrappersToBootstrap: Class<Bootstrapper>[]): Promise<void> {
+        for (const bootstrapper of bootstrappersToBootstrap) {
+            // check if in _bootstrappedBootstrappers
+            if (this._bootstrappedBootstrappers.some((b) => b instanceof bootstrapper)) {
+                continue;
+            }
 
-                await instance.onEmulatorBootstrapping?.();
+            const instance = new bootstrapper(this.emulator);
 
-                return instance;
-            }));
+            await instance.onEmulatorBootstrapping?.();
+
+            this._bootstrappedBootstrappers.push(instance);
+
+            if (instance.bootstraps()) {
+                await this.bootstrapBootstrappers(instance.bootstraps());
+            }
+        }
     }
 
     private async runBootstrappersOnEmulatorStart(): Promise<void> {
@@ -67,7 +76,7 @@ export class EmulatorBootstrapper {
     }
 
     public async stop(): Promise<void> {
-        this.runBootstrappersOnEmulatorStop();
+        void this.runBootstrappersOnEmulatorStop();
         this.emulator.events.emit('stopped');
     }
 }

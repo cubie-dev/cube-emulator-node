@@ -7,9 +7,9 @@ export class Bootstrapper {
     ) {
     }
 
-    public async onEmulatorBootstrapping(): Promise<void> {}
-    public async onEmulatorStart(): Promise<void> {}
-    public async onEmulatorStop(): Promise<void> {}
+    public async registerBindings(): Promise<void> {}
+    public async boot(): Promise<void> {}
+    public async stop(): Promise<void> {}
     public bootstraps(): Class<Bootstrapper>[] {
         return [];
     }

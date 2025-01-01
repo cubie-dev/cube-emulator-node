@@ -1,16 +1,21 @@
 import { Bootstrapper } from '../bootstrap/Bootstrapper';
-import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
-import { LogLevel } from '../logging/LogLevel';
+import {DATABASE_MANAGER_TOKEN, IDatabaseManager} from '../../api/core/database/DatabaseManager';
+import {DatabaseManager} from './DatabaseManager';
+import {User} from './entities/User';
+import {IEntityManager} from '../../api/core/database/IEntityManager';
 
 export class DatabaseBootstrapper extends Bootstrapper {
-    public async onEmulatorBootstrapping(): Promise<void> {
-        this.registerBindings();
-
-        this.emulator.container.get<ILogger>(LOGGER_TOKEN)
-            .log('Database', LogLevel.INFO, 'Bootstrapping...');
+    public async registerBindings(): Promise<void> {
+        this.emulator.rootContainer
+            .bind<IDatabaseManager>(DATABASE_MANAGER_TOKEN)
+            .to(DatabaseManager)
+            .inSingletonScope();
     }
 
-    private registerBindings(): void {
+    public async boot(): Promise<void> {
+       const dbManager = await this.emulator.rootContainer
+            .get<IDatabaseManager>(DATABASE_MANAGER_TOKEN);
 
+       await dbManager.boot();
     }
 }

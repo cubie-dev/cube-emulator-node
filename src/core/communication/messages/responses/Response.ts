@@ -1,5 +1,5 @@
 export class Response {
-    protected _data: unknown[];
+    public readonly data: unknown[] = [];
 
     public constructor(
         protected _header: number
@@ -10,10 +10,6 @@ export class Response {
     }
 
     protected addData(data: unknown): void {
-        this._data.push(data);
-    }
-
-    public get data(): unknown[] {
-        return this._data;
+        this.data.push(data);
     }
 }

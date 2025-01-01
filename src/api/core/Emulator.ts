@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events';
 export interface IEmulator {
     rootDirectory: string;
     startTime: Date;
-    container: Container;
+    rootContainer: Container;
     events: EventEmitter;
 }
 

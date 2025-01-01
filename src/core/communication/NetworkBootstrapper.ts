@@ -8,34 +8,35 @@ import { Class } from 'utility-types';
 import { Codec } from './Codec';
 import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
 import { LogLevel } from '../logging/LogLevel';
+import { EventContextFactory } from './messages/events/EventContextFactory';
+import { CODEC_TOKEN, ICodec } from '../../api/core/communication/Codec';
+import { EVENT_CONTEXT_FACTORY_TOKEN, IEventContextFactory } from '../../api/core/communication/EventContextFactory';
 
 export class NetworkBootstrapper extends Bootstrapper {
-    public async onEmulatorBootstrapping(): Promise<void> {
-        this.registerBindings();
+    public async registerBindings(): Promise<void> {
 
-        this.emulator.container.get<ILogger>(LOGGER_TOKEN)
-            .log('Network', LogLevel.INFO, 'Bootstrapping...');
-    }
-
-    public async onEmulatorStop(): Promise<void> {
-        const socketServer = this.emulator.container.get<ISocketServer>(SOCKET_SERVER_TOKEN);
-
-        socketServer.stop();
-    }
-
-    private registerBindings(): void {
-        this.emulator.container
+        this.emulator.rootContainer
             .bind<ISocketServer>(SOCKET_SERVER_TOKEN)
             .to(SocketServer)
             .inSingletonScope();
 
-        this.emulator.container
+        this.emulator.rootContainer
             .bind<ISocketMessageHandler>(SOCKET_MESSAGE_HANDLER_TOKEN)
             .to(SocketMessageHandler);
 
-        this.emulator.container
-            .bind(Codec)
-            .toSelf();
+        this.emulator.rootContainer
+            .bind<ICodec>(CODEC_TOKEN)
+            .to(Codec);
+        this.emulator.rootContainer
+            .bind<IEventContextFactory>(EVENT_CONTEXT_FACTORY_TOKEN)
+            .to(EventContextFactory);
+    }
+
+    public async stop(): Promise<void> {
+        const socketServer = this.emulator.rootContainer
+            .get<ISocketServer>(SOCKET_SERVER_TOKEN);
+
+        socketServer.stop();
     }
 
     public bootstraps(): Class<Bootstrapper>[] {

@@ -2,8 +2,11 @@ import { Event } from './messages/events/Event';
 import { BinaryReader } from './messages/BinaryReader';
 import { Response } from './messages/responses/Response';
 import { BinaryWriter } from './messages/BinaryWriter';
+import { injectable } from 'inversify';
+import { ICodec } from '../../api/core/communication/Codec';
 
-export class Codec {
+@injectable()
+export class Codec implements ICodec {
     public decode(data: Buffer): Event {
         const uint8Array = new Uint8Array(data);
         const reader = new BinaryReader(uint8Array.buffer);
@@ -21,7 +24,7 @@ export class Codec {
         const data = response.data;
         const writer = new BinaryWriter();
 
-        writer.writeInt(response.header);
+        writer.writeShort(response.header);
 
         for (const item of data) {
             let type: string = typeof item;

@@ -16,7 +16,7 @@ export class EventHeader
     public static CLIENT_LATENCY = 295;
     public static CLIENT_LATENCY_MEASURE = 96;
     public static CLIENT_POLICY = 26979;
-    public static CLIENT_PING = 2596;
+    public static CLIENT_PONG = 2596;
     public static CLIENT_TOOLBAR_TOGGLE = 2313;
     public static CLIENT_VARIABLES = 1053;
     public static GET_CURRENT_TIMING_CODE = 2912;
@@ -209,7 +209,7 @@ export class EventHeader
     public static MYSTERYBOXWAITINGCANCELEDMESSAGE = 2012;
     public static MYSTERYBOX_OPEN_TROPHY = 3074;
     public static SECURITY_MACHINE = 2490;
-    public static SECURITY_TICKET = 2419;
+    public static SSO = 2419;
     public static TRADE = 1481;
     public static TRADE_ACCEPT = 3863;
     public static TRADE_CANCEL = 2341;

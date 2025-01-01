@@ -1,14 +1,13 @@
 import { ILogger } from '../../api/core/logger/Logger';
 import { createLogger, Logger, format, transports } from 'winston';
 import { Format } from 'logform'
-import { Transports } from 'winston/lib/winston/transports';
 import * as Transport from 'winston-transport';
 
 export class WinstonLogger implements ILogger {
-    private _winston: Logger;
+    private winston: Logger;
 
     public constructor() {
-        this._winston = createLogger({
+        this.winston = createLogger({
             transports: this.createLoggerTransport(),
             format: this.createFormat(),
             levels: {
@@ -52,7 +51,7 @@ export class WinstonLogger implements ILogger {
     }
 
     public log(context: string, level: string, message: string) {
-        this._winston.log({
+        this.winston.log({
             level,
             message,
             context,

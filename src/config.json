@@ -1,6 +1,14 @@
 {
+    "debug": true,
     "server": {
         "host": "0.0.0.0",
         "port": 3000
+    },
+    "database": {
+        "host": "db",
+        "port": 3306,
+        "name": "emulator",
+        "username": "emulator",
+        "password": "emulator"
     }
 }

@@ -1,16 +1,13 @@
 import { RawData, WebSocket } from 'ws';
+import { User } from '../database/entities/User';
 
 export class Client {
-    public constructor(
-        private socket: WebSocket
-    ) {
-        // this.initEvents();
-    }
+    private _user: User;
 
-    // private initEvents() {
-    //     this.socket.on('message', this.onMessage.bind(this));
-    //     this.socket.on('close', this.onClose.bind(this));
-    // }
+    public constructor(
+        public socket: WebSocket
+    ) {
+    }
 
     public onMessage(cb: (client: this, data: Buffer) => void) {
         const that = this;
@@ -23,5 +20,10 @@ export class Client {
     public send(buffer: ArrayBuffer, errorCallback: (err?: Error) => void): void {
         this.socket.send(buffer, errorCallback);
     }
+
+    public set user(user: User) {
+        this._user = user;
+    }
+
     private onClose() {}
 }

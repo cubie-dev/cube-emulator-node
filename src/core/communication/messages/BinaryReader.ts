@@ -1,64 +1,64 @@
 
 export class BinaryReader {
-    private _position: number;
-    private _dataView: DataView;
+    private position: number;
+    private dataView: DataView<ArrayBuffer>;
 
     constructor(buffer: ArrayBuffer)
     {
-        this._position = 0;
-        this._dataView = new DataView(buffer);
+        this.position = 0;
+        this.dataView = new DataView<ArrayBuffer>(buffer);
     }
 
     public readBytes(length: number): BinaryReader
     {
-        const buffer = new BinaryReader(this._dataView.buffer.slice(this._position, this._position + length));
+        const buffer = new BinaryReader(this.dataView.buffer.slice(this.position, this.position + length));
 
-        this._position += length;
+        this.position += length;
 
         return buffer;
     }
 
     public readByte(): number
     {
-        const byte = this._dataView.getInt8(this._position);
+        const byte = this.dataView.getInt8(this.position);
 
-        this._position++;
+        this.position++;
 
         return byte;
     }
 
     public readShort(): number
     {
-        const short = this._dataView.getInt16(this._position);
+        const short = this.dataView.getInt16(this.position);
 
-        this._position += 2;
+        this.position += 2;
 
         return short;
     }
 
     public readInt(): number
     {
-        const int = this._dataView.getInt32(this._position);
+        const int = this.dataView.getInt32(this.position);
 
-        this._position += 4;
+        this.position += 4;
 
         return int;
     }
 
     public readFloat(): number
     {
-        const float = this._dataView.getFloat32(this._position);
+        const float = this.dataView.getFloat32(this.position);
 
-        this._position += 4;
+        this.position += 4;
 
         return float;
     }
 
     public readDouble(): number
     {
-        const double = this._dataView.getFloat64(this._position);
+        const double = this.dataView.getFloat64(this.position);
 
-        this._position += 8;
+        this.position += 8;
 
         return double;
     }
@@ -73,16 +73,16 @@ export class BinaryReader {
 
     public remaining(): number
     {
-        return this._dataView.byteLength - this._position;
+        return this.dataView.byteLength - this.position;
     }
 
     public toString(encoding?: string): string
     {
-        return new TextDecoder().decode(this._dataView.buffer);
+        return new TextDecoder().decode(this.dataView.buffer);
     }
 
     public toArrayBuffer(): ArrayBuffer
     {
-        return this._dataView.buffer;
+        return this.dataView.buffer;
     }
 }

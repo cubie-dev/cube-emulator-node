@@ -7,26 +7,19 @@ import { LogLevel } from '../logging/LogLevel';
 
 @injectable()
 export class ConfigBootstrapper extends Bootstrapper {
-    public async onEmulatorBootstrapping(): Promise<void> {
-        this.registerBindings();
-
-        this.emulator.container.get<ILogger>(LOGGER_TOKEN)
-            .log('Config', LogLevel.INFO, 'Bootstrapping...');
-
-        await this.emulator.container
-            .get<IRepository>(CONFIG_REPOSITORY_TOKEN)
-            .loadConfig();
-
-        this.emulator.container.get<ILogger>(LOGGER_TOKEN)
-            .log('Config', LogLevel.INFO, 'Configuration loaded!');
-        // load configuration
-        // populate repository
-    }
-
-    private registerBindings(): void {
-        this.emulator.container
+    public async registerBindings(): Promise<void> {
+        this.emulator.rootContainer
             .bind<IRepository>(CONFIG_REPOSITORY_TOKEN)
             .to(Repository)
             .inSingletonScope();
+    }
+
+    public async boot(): Promise<void> {
+        await this.emulator.rootContainer
+            .get<IRepository>(CONFIG_REPOSITORY_TOKEN)
+            .loadConfig();
+
+        this.emulator.rootContainer.get<ILogger>(LOGGER_TOKEN)
+            .log('Config', LogLevel.INFO, 'Configuration loaded!');
     }
 }

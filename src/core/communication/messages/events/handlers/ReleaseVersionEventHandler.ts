@@ -1,10 +1,10 @@
 import { EventHandler } from '../EventHandler';
 import { Response } from '../../responses/Response';
 import { Event } from '../Event';
-import { Client } from '../../../Client';
+import { EventContext } from '../EventContext';
 
 export class ReleaseVersionEventHandler extends EventHandler {
-    public handle(_clientRequest: Event, _client: Client): Response {
+    public handle(_event: Event, _context: EventContext): Response {
         return null;
     }
 }

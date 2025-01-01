@@ -1,4 +1,3 @@
-import { interfaces } from 'inversify';
 import { ConfigBootstrapper } from './config/ConfigBootstrapper';
 import { IEmulator } from '../api/core/Emulator';
 import { Bootstrapper } from './bootstrap/Bootstrapper';
@@ -7,12 +6,14 @@ import { NetworkBootstrapper } from './communication/NetworkBootstrapper';
 import { LoggingBootstrapper } from './logging/LoggingBootstrapper';
 import { Class } from 'utility-types';
 import { DatabaseBootstrapper } from './database/DatabaseBootstrapper';
+import * as console from 'node:console';
+import { Codec } from './communication/Codec';
 
 export class EmulatorBootstrapper {
     /**
      * Bootstrappers that will be run on initial emulator start up
      */
-    private _bootstrappers: Class<Bootstrapper>[] = [
+    private bootstrappers: Class<Bootstrapper>[] = [
         LoggingBootstrapper,
         ConfigBootstrapper,
         NetworkBootstrapper,
@@ -21,7 +22,7 @@ export class EmulatorBootstrapper {
     /**
      * Bootstrappers that have been bootstrapped
      */
-    private _bootstrappedBootstrappers: Bootstrapper[] = [];
+    private bootstrappedBootstrappers: Bootstrapper[] = [];
 
     public constructor(
         private emulator: IEmulator
@@ -29,48 +30,46 @@ export class EmulatorBootstrapper {
     }
 
     public async bootstrap(): Promise<EmulatorBootstrapper> {
-        await this.bootstrapBootstrappers(this._bootstrappers);
-        this.emulator.events.emit('bootstrapped');
+        await this.registerBootstrappers(this.bootstrappers);
 
         return this;
     }
 
-    private async bootstrapBootstrappers(bootstrappersToBootstrap: Class<Bootstrapper>[]): Promise<void> {
+    private async registerBootstrappers(bootstrappersToBootstrap: Class<Bootstrapper>[]): Promise<void> {
         for (const bootstrapper of bootstrappersToBootstrap) {
-            // check if in _bootstrappedBootstrappers
-            if (this._bootstrappedBootstrappers.some((b) => b instanceof bootstrapper)) {
+            const alreadyBootstrapped = this.bootstrappedBootstrappers.some((b) => b instanceof bootstrapper);
+
+            if (alreadyBootstrapped) {
                 continue;
             }
 
             const instance = new bootstrapper(this.emulator);
 
-            await instance.onEmulatorBootstrapping?.();
+            await instance.registerBindings?.();
 
-            this._bootstrappedBootstrappers.push(instance);
+            this.bootstrappedBootstrappers.push(instance);
 
             if (instance.bootstraps()) {
-                await this.bootstrapBootstrappers(instance.bootstraps());
+                await this.registerBootstrappers(instance.bootstraps());
             }
         }
     }
 
-    private async runBootstrappersOnEmulatorStart(): Promise<void> {
-        await Promise.all(
-            this._bootstrappedBootstrappers.map(async (bootstrapper) => {
-                await bootstrapper.onEmulatorStart?.();
-            }));
+    private async bootBootstrappers(): Promise<void> {
+        for (const bootstrapper of this.bootstrappedBootstrappers) {
+            await bootstrapper.boot?.();
+        }
     }
 
-    private async runBootstrappersOnEmulatorStop(): Promise<void> {
-        await Promise.all(
-            this._bootstrappedBootstrappers.map(async (bootstrapper) => {
-                await bootstrapper.onEmulatorStop?.();
-            }));
+    private async stopBootstrappers(): Promise<void> {
+        for (const bootstrapper of this.bootstrappedBootstrappers) {
+            await bootstrapper.stop?.();
+        }
     }
 
     public async start(): Promise<void> {
-        await this.runBootstrappersOnEmulatorStart();
-        this.emulator.container
+        await this.bootBootstrappers();
+        this.emulator.rootContainer
             .get<ISocketServer>(SOCKET_SERVER_TOKEN)
             .start();
 
@@ -78,7 +77,7 @@ export class EmulatorBootstrapper {
     }
 
     public async stop(): Promise<void> {
-        void this.runBootstrappersOnEmulatorStop();
+        void this.stopBootstrappers();
         this.emulator.events.emit('stopped');
     }
 }

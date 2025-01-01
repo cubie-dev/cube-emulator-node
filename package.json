@@ -6,11 +6,13 @@
     "type": "module",
     "scripts": {
         "dev": "tsx src/main.ts",
-        "watch": "tsx src/main.ts --watch"
+        "watch": "tsx watch src/main.ts"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@mikro-orm/core": "^6.4.2",
+        "@mikro-orm/mysql": "^6.4.2",
         "inversify": "^6.1.6",
         "inversify-binding-decorators": "^4.0.0",
         "inversify-inject-decorators": "^3.1.0",

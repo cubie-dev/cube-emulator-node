@@ -9,8 +9,8 @@ import { LogLevel } from '../logging/LogLevel';
 
 @injectable()
 export class SocketServer implements ISocketServer {
-    private _server?: Server;
-    private _clients: Client[] = [];
+    private server?: Server;
+    private clients: Client[] = [];
 
     public constructor(
         @inject(CONFIG_REPOSITORY_TOKEN) private config: IRepository,
@@ -20,12 +20,12 @@ export class SocketServer implements ISocketServer {
     }
 
     public start(): void {
-        if (!this._server) {
+        if (!this.server) {
             this.createServer();
         }
 
-        this._server.on('listening', this.onStartedListening.bind(this));
-        this._server.on('connection', this.onNewConnection.bind(this))
+        this.server.on('listening', this.onStartedListening.bind(this));
+        this.server.on('connection', this.onNewConnection.bind(this))
     }
 
     public stop(): void {
@@ -33,7 +33,7 @@ export class SocketServer implements ISocketServer {
     }
 
     private createServer(): void {
-        this._server = new WebSocketServer({
+        this.server = new WebSocketServer({
             port: this.config.get<number>('network.port', 3333),
             host: this.config.get<string>('network.host', '0.0.0.0'),
             verifyClient: (info, cb) => {
@@ -57,10 +57,30 @@ export class SocketServer implements ISocketServer {
     private onNewConnection(socket: WebSocket) {
         const client = new Client(socket);
 
-        this._clients.push(client);
+        this.clients.push(client);
 
-        client.onMessage((client: Client, data: RawData) => {
+        client.onMessage(async (client: Client, data: RawData) => {
             this.messageHandler.handle(client, data);
+        });
+    }
+
+    public disposeClient(client: Client) {
+        // TODO generate ID?
+        const foundClient = this.clients.find((c: Client) => c === client);
+
+        if (!foundClient) {
+            return;
+        }
+
+        foundClient.socket.close();
+
+        process.nextTick(() => {
+            if (
+                [foundClient.socket.OPEN, foundClient.socket.CLOSING]
+                    .includes(foundClient.socket.readyState)
+            ) {
+                foundClient.socket.terminate();
+            }
         });
     }
 }

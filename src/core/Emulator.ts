@@ -3,6 +3,7 @@ import { EMULATOR_TOKEN, IEmulator } from '../api/core/Emulator';
 import { EventEmitter } from 'node:events';
 import { Container } from 'inversify';
 import { buildProviderModule } from 'inversify-binding-decorators';
+import packageJson from '../../package.json';
 
 export class Emulator implements IEmulator {
     public readonly startTime: Date;
@@ -22,5 +23,9 @@ export class Emulator implements IEmulator {
 
     public static async create(rootDirectory: string): Promise<EmulatorBootstrapper> {
         return new EmulatorBootstrapper(new this(rootDirectory)).bootstrap();
+    }
+
+    public get version(): string {
+        return packageJson.version;
     }
 }

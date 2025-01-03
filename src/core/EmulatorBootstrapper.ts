@@ -7,7 +7,6 @@ import { LoggingBootstrapper } from './logging/LoggingBootstrapper';
 import { Class } from 'utility-types';
 import { DatabaseBootstrapper } from './database/DatabaseBootstrapper';
 import * as console from 'node:console';
-import { Codec } from './communication/Codec';
 
 export class EmulatorBootstrapper {
     /**
@@ -68,6 +67,8 @@ export class EmulatorBootstrapper {
     }
 
     public async start(): Promise<void> {
+        this.showBanner();
+
         await this.bootBootstrappers();
         this.emulator.rootContainer
             .get<ISocketServer>(SOCKET_SERVER_TOKEN)
@@ -79,5 +80,17 @@ export class EmulatorBootstrapper {
     public async stop(): Promise<void> {
         void this.stopBootstrappers();
         this.emulator.events.emit('stopped');
+    }
+
+    private showBanner(): void {
+        const logo = `
+ ______     __  __     ______     __     ______    
+/\\  ___\\   /\\ \\/\\ \\   /\\  == \\   /\\ \\   /\\  ___\\   
+\\ \\ \\____  \\ \\ \\_\\ \\  \\ \\  __<   \\ \\ \\  \\ \\  __\\   
+ \\ \\_____\\  \\ \\_____\\  \\ \\_____\\  \\ \\_\\  \\ \\_____\\ 
+  \\/_____/   \\/_____/   \\/_____/   \\/_/   \\/_____/     
+   Version ${this.emulator.version}                   
+        `
+        console.log(logo);
     }
 }

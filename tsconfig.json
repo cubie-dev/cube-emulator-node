@@ -10,5 +10,6 @@
         "emitDecoratorMetadata": true,
         "esModuleInterop": true,
         "baseUrl": "./src",
+        "resolveJsonModule": true,
     }
 }

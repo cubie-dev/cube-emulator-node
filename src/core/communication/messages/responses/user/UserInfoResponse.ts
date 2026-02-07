@@ -10,15 +10,15 @@ export class UserInfoResponse extends Response {
         this.addData(user.username);
         this.addData(user.look);
         this.addData(user.gender);
-        this.addData(user.motto);
-        this.addData(user.realName);
+        this.addData(''); // motto TODO
+        this.addData(''); //real name TODO?
         this.addData(false); // direct mail
-        this.addData(user.settings.respectReceived);
-        this.addData(user.settings.respectsToGiveToday);
-        this.addData(user.settings.petRespectsToGiveToday);
+        this.addData(user.stats.respectReceived);
+        this.addData(0); // respect given today
+        this.addData(0); // petRespectsToGiveToday
         this.addData(false); //stream publish allowed
         this.addData('01-01-1970 00:00:00');
-        this.addData(user.settings.allowNameChange);
+        this.addData(false); // allowNameChange
         this.addData(false); //safety locked
     }
 }

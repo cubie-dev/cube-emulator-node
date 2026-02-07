@@ -1,8 +1,8 @@
 services:
   emulator:
     build:
-        context: .
-        dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - ./:/emulator
     ports:
@@ -14,13 +14,16 @@ services:
       - db
 
   db:
-    image: mariadb:10.11
+    image: postgres:18-alpine3.23
     environment:
-        MYSQL_ROOT_PASSWORD: "admin"
-        MYSQL_DATABASE: "emulator"
-        MYSQL_USER: "emulator"
-        MYSQL_PASSWORD: "emulator"
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: "admin"
+      POSTGRES_DB: "cube-emulator"
+      POSTGRES_USER: "cube-emulator"
+      POSTGRES_PASSWORD: "cube-emulator"
+    volumes:
+      - dbdata:/var/lib/postgresql
     labels:
-      - dev.orbstack.http-port=3306
+      - dev.orbstack.http-port=5432
+
+volumes:
+  dbdata:

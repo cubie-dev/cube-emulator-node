@@ -28,14 +28,6 @@ export class Pipeline<T, R> {
         return this;
     }
 
-    private runPipe() {
-        return (initial, pipe: PipeFunction<T, R>) => {
-            return (event: T) => {
-                return pipe(event, initial);
-            }
-        }
-    }
-
     public async then(destination: Destination<T, R>): Promise<R | R[] | null> {
         const pipeline = this.pipes
             .reverse()

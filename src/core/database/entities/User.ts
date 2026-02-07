@@ -1,21 +1,23 @@
-import { Entity, Enum, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, EntityRepositoryType, Enum, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
 import {UserRepository} from '../repositories/UserRepository';
 import { Gender } from '../enums/Gender';
-import { UserSettings } from './UserSettings';
+import { UserStats } from './UserStats';
 
 @Entity({
     tableName: 'users',
     repository: () => UserRepository,
 })
 export class User {
+    [EntityRepositoryType]?: UserRepository;
+
     @PrimaryKey({ type: 'numeric' })
     public id: number;
 
     @Property({
-        fieldName: 'auth_ticket',
-        type: 'varchar',
+        fieldName: 'auth_token',
+        type: 'text',
     })
-    public authTicket: string;
+    public authToken!: string | null;
 
     @Property({
         fieldName: 'username',
@@ -35,23 +37,9 @@ export class User {
     })
     public gender: Gender;
 
-    @Property({
-        fieldName: 'motto',
-        type: 'varchar',
-    })
-    public motto: string;
-
-    @Property({
-        fieldName: 'real_name',
-        type: 'string',
-    })
-    public realName: string;
-
     @OneToOne(
-        () => UserSettings,
-        (settings: UserSettings) => settings.user,
-        {
-        }
+        () => UserStats,
+        (stats: UserStats) => stats.user
     )
-    public settings!: UserSettings;
+    public stats!: UserStats;
 }

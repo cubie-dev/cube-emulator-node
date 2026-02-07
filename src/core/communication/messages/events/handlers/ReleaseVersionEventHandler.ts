@@ -1,9 +1,9 @@
-import { EventHandler } from '../EventHandler';
-import { Event } from '../Event';
-import { EventContext } from '../EventContext';
+import { EventHandler } from '../EventHandler.js';
+import { Response } from '../../responses/Response.js';
+import { EventContext } from '../EventContext.js';
 
 export class ReleaseVersionEventHandler extends EventHandler {
-    public handle(_event: Event, _context: EventContext): null {
+    public handle(_context: EventContext): null {
         return null;
     }
 }

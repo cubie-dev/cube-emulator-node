@@ -9,43 +9,43 @@ import { UserSettings } from './UserSettings';
 })
 export class User {
     @PrimaryKey({ type: 'numeric' })
-    public id!: number;
+    public id: number;
 
     @Property({
         fieldName: 'auth_ticket',
         type: 'varchar',
     })
-    public authTicket!: string;
+    public authTicket: string;
 
     @Property({
         fieldName: 'username',
         type: 'varchar',
     })
-    public username!: string;
+    public username: string;
 
     @Property({
         fieldName: 'look',
         type: 'varchar',
     })
-    public look!: string;
+    public look: string;
 
     @Enum({
         fieldName: 'gender',
         items: () => Gender
     })
-    public gender!: Gender;
+    public gender: Gender;
 
     @Property({
         fieldName: 'motto',
         type: 'varchar',
     })
-    public motto!: string;
+    public motto: string;
 
     @Property({
         fieldName: 'real_name',
         type: 'string',
     })
-    public realName!: string;
+    public realName: string;
 
     @OneToOne(
         () => UserSettings,

@@ -5,7 +5,6 @@ import { EMULATOR_TOKEN, IEmulator } from '../../api/core/Emulator';
 import { join as joinPaths} from 'node:path';
 import { get } from 'lodash-es';
 
-@injectable()
 export class Repository implements IRepository {
     private config?: any;
 

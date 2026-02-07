@@ -3,6 +3,7 @@ import { User } from '../database/entities/User';
 
 export class Client {
     private _user: User;
+    private _lastPong?: number;
 
     public constructor(
         public socket: WebSocket
@@ -23,6 +24,10 @@ export class Client {
 
     public set user(user: User) {
         this._user = user;
+    }
+
+    public set lastPong(timestamp: number) {
+        this._lastPong = timestamp;
     }
 
     private onClose() {}

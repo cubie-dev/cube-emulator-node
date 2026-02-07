@@ -6,7 +6,6 @@ import { User } from '../../../../../database/entities/User';
 import { AuthenticatedResponse } from '../../../responses/handshake/AuthenticatedResponse';
 import { inject } from 'inversify';
 import { ISocketServer, SOCKET_SERVER_TOKEN } from '../../../../../../api/core/communication/SocketServer';
-import { PongResponse } from '../../../responses/PongResponse';
 import { LoadGameUrlResponse } from '../../../responses/handshake/LoadGameUrlResponse';
 import { GameType } from '../../../../../../game/GameType';
 import { UserInfoResponse } from '../../../responses/user/UserInfoResponse';

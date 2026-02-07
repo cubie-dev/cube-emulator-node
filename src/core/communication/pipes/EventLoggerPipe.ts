@@ -24,6 +24,15 @@ export class EventLoggerPipe implements PipeClass<Event, Response> {
         const responses = Array.isArray(response) ? response : [response];
 
         for (const response of responses) {
+            if (! response) {
+                this.logger.log(
+                    'Network',
+                    LogLevel.WARN,
+                    `No response to send back.`
+                );
+                continue;
+            }
+
             this.logger.log(
                 'Network',
                 LogLevel.INFO,

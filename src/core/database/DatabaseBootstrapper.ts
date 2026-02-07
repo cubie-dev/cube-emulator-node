@@ -13,7 +13,7 @@ export class DatabaseBootstrapper extends Bootstrapper {
     }
 
     public async boot(): Promise<void> {
-       const dbManager = await this.emulator.rootContainer
+       const dbManager = this.emulator.rootContainer
             .get<IDatabaseManager>(DATABASE_MANAGER_TOKEN);
 
        await dbManager.boot();

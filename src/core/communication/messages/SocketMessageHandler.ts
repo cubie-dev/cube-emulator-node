@@ -21,7 +21,6 @@ import { Class } from 'utility-types';
 import { EventHandler } from './events/EventHandler';
 import { EventLoggerPipe } from '../pipes/EventLoggerPipe';
 
-@injectable()
 export class SocketMessageHandler implements ISocketMessageHandler {
     public constructor(
         @inject(EVENT_HANDLER_REGISTRY_TOKEN) private handlerRegistry: IEventHandlerRegistry,
@@ -37,9 +36,9 @@ export class SocketMessageHandler implements ISocketMessageHandler {
         event: Event,
         eventContext: EventContext,
         handler: Class<EventHandler>
-    ): Promise<Response | Response[]> {
+    ): Promise<Response | Response[] | null> {
         return this.emulator.rootContainer
-            .resolve(handler)
+            .get(handler)
             .handle(
                 event,
                 eventContext,
@@ -75,7 +74,8 @@ export class SocketMessageHandler implements ISocketMessageHandler {
 
             void this.flushAndRespond(eventContext, response);
         } catch (e: unknown) {
-            this.logger.log('Network', LogLevel.ERROR, `Error while handling: ${event.header}; ${e}`);
+            this.logger.log('Network', LogLevel.ERROR, `Error while handling: ${event.header}`);
+            console.error(e);
         }
     }
 

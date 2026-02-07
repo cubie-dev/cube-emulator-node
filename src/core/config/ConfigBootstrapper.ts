@@ -5,7 +5,6 @@ import { Repository } from './Repository';
 import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
 import { LogLevel } from '../logging/LogLevel';
 
-@injectable()
 export class ConfigBootstrapper extends Bootstrapper {
     public async registerBindings(): Promise<void> {
         this.emulator.rootContainer

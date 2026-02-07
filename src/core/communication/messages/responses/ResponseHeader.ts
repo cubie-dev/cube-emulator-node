@@ -15,7 +15,7 @@ export class ResponseHeader {
     public static CATALOG_PUBLISHED = 1866;
     public static CFH_RESULT_MESSAGE = 3635;
     public static CLIENT_LATENCY = 10;
-    public static CLIENT_PONG = 3928;
+    public static CLIENT_PING = 3928;
     public static DESKTOP_CAMPAIGN = 1745;
     public static DESKTOP_NEWS = 286;
     public static DESKTOP_VIEW = 122;

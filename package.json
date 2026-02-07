@@ -11,17 +11,15 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@mikro-orm/core": "^6.4.2",
-        "@mikro-orm/mysql": "^6.4.2",
-        "inversify": "^6.1.6",
-        "inversify-binding-decorators": "^4.0.0",
-        "inversify-inject-decorators": "^3.1.0",
+        "@inversifyjs/binding-decorators": "^1.1.5",
+        "@mikro-orm/core": "^6.5.7",
+        "@mikro-orm/mysql": "^6.5.7",
+        "inversify": "^7.10.2",
         "lodash-es": "^4.17.21",
         "reflect-metadata": "^0.2.2",
-        "ts-node": "^10.9.2",
         "utility-types": "^3.11.0",
-        "winston": "^3.17.0",
-        "ws": "^8.18.0"
+        "winston": "^3.18.3",
+        "ws": "^8.18.3"
     },
     "devDependencies": {
         "@types/lodash": "^4.17.13",

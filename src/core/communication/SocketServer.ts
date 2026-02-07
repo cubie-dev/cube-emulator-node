@@ -7,7 +7,6 @@ import { Client } from './Client';
 import { ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';
 import { LogLevel } from '../logging/LogLevel';
 
-@injectable()
 export class SocketServer implements ISocketServer {
     private server?: Server;
     private clients: Client[] = [];

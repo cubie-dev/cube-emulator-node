@@ -44,7 +44,7 @@ export class Pipeline<T, R> {
                     return (event: T) => {
                         if (isClass(pipe)) {
                             return this.container
-                                .resolve<PipeClass<T, R>>(pipe)
+                                .get<PipeClass<T, R>>(pipe)
                                 .handle(event, initial);
                         }
 

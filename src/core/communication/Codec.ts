@@ -5,7 +5,6 @@ import { BinaryWriter } from './messages/BinaryWriter';
 import { injectable } from 'inversify';
 import { ICodec } from '../../api/core/communication/Codec';
 
-@injectable()
 export class Codec implements ICodec {
     public decode(data: Buffer): Event {
         const uint8Array = new Uint8Array(data);

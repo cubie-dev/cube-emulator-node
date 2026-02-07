@@ -2,7 +2,7 @@ import { EmulatorBootstrapper } from './EmulatorBootstrapper';
 import { EMULATOR_TOKEN, IEmulator } from '../api/core/Emulator';
 import { EventEmitter } from 'node:events';
 import { Container } from 'inversify';
-import { buildProviderModule } from 'inversify-binding-decorators';
+import { buildProviderModule } from '@inversifyjs/binding-decorators';
 import packageJson from '../../package.json';
 
 export class Emulator implements IEmulator {
@@ -15,10 +15,12 @@ export class Emulator implements IEmulator {
     ) {
         this.startTime = new Date();
         this.events = new EventEmitter();
-        this.rootContainer = new Container();
+        this.rootContainer = new Container({
+            autobind: true,
+        });
 
         this.rootContainer.bind(EMULATOR_TOKEN).toConstantValue(this)
-        this.rootContainer.load(buildProviderModule());
+        void this.rootContainer.load(buildProviderModule());
     }
 
     public static async create(rootDirectory: string): Promise<EmulatorBootstrapper> {

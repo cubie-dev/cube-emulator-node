@@ -2,6 +2,7 @@ import { Entity, EntityRepositoryType, ManyToOne, OneToMany, OneToOne, PrimaryKe
 import { RoomRepository } from '../repositories/RoomRepository';
 import { StringEnumBool } from '../types/StringEnumBool';
 import { NavigatorCategory } from './NavigatorCategory';
+import { User } from './User';
 
 @Entity({
     tableName: 'rooms',
@@ -16,13 +17,24 @@ export class Room {
     public id!: number;
 
     @Property({
-        type: StringEnumBool,
-        fieldName: 'is_public',
+        fieldName: 'name',
+        type: 'varchar',
     })
-    public isPublic!: boolean;
+    public name!: string;
+
+    @ManyToOne(
+        () => User,
+        {
+            fieldName: 'owner_id',
+        }
+    )
+    public owner: User;
 
     @ManyToOne(
         () => NavigatorCategory,
+        {
+            fieldName: 'category_id',
+        }
     )
     public category: NavigatorCategory;
 }

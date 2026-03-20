@@ -14,12 +14,6 @@ export class User {
     public id: number;
 
     @Property({
-        fieldName: 'auth_token',
-        type: 'text',
-    })
-    public authToken!: string | null;
-
-    @Property({
         fieldName: 'username',
         type: 'varchar',
     })
@@ -37,9 +31,15 @@ export class User {
     })
     public gender: Gender;
 
+    @Property({
+        fieldName: 'auth_token',
+        type: 'text',
+    })
+    public authToken: string | null;
+
     @OneToOne(
         () => UserStats,
         (stats: UserStats) => stats.user
     )
-    public stats!: UserStats;
+    public stats: UserStats;
 }

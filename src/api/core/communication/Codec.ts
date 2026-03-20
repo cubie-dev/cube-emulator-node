@@ -1,5 +1,5 @@
-import { Event } from '../../../core/communication/messages/events/Event';
-import { Response } from '../../../core/communication/messages/responses/Response';
+import { Event } from '../../../core/communication/messages/events/Event.js';
+import { Response } from '../../../core/communication/messages/responses/Response.js';
 
 export interface ICodec {
     encode(response: Response): ArrayBuffer;

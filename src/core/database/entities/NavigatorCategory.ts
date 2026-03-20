@@ -3,7 +3,7 @@ import { Room } from './Room';
 import { StringEnumBool } from '../types/StringEnumBool';
 
 @Entity({
-    tableName: 'navigator_flatcats',
+    tableName: 'navigator_categories',
 })
 export class NavigatorCategory {
     @PrimaryKey({
@@ -13,22 +13,10 @@ export class NavigatorCategory {
     public id!: number;
 
     @Property({
-        fieldName: 'min_rank',
-        type: 'numeric',
-    })
-    public minRank!: number;
-
-    @Property({
-        fieldName: 'caption',
+        fieldName: 'name',
         type: 'string',
     })
-    public caption!: string;
-
-    @Property({
-        fieldName: 'daily_respect_points',
-        type: BooleanType,
-    })
-    public canTrade!: number; // TODO this is actualy a enum with strings in the database
+    public name!: string;
 
     @OneToMany(
         () => Room,

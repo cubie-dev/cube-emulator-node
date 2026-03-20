@@ -1,4 +1,4 @@
-import { Client } from '../../../core/communication/Client';
+import { Client } from '../../../core/communication/Client.js';
 
 export interface ISocketServer {
     start(): void;

@@ -1,11 +1,9 @@
-import { Destination, PipeFunction, PipeClass } from '../../support/pipeline/Pipeline';
-import { Event } from '../messages/events/Event';
-import { Response } from '../messages/responses/Response';
-import { R } from 'tsx/dist/types-Cxp8y2TL';
+import { Destination, PipeFunction, PipeClass } from '../../support/pipeline/Pipeline.js';
+import { Response } from '../messages/responses/Response.js';
 import { inject } from 'inversify';
-import { ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger';
-import { LogLevel } from '../../logging/LogLevel';
-import { EventContext } from '../messages/events/EventContext';
+import { ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger.js';
+import { LogLevel } from '../../logging/LogLevel.js';
+import { EventContext } from '../messages/events/EventContext.js';
 
 export class EventLoggerPipe implements PipeClass<EventContext, Response> {
     public constructor(

@@ -6,7 +6,6 @@ import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repo
 
 export class DatabaseManager implements IDatabaseManager {
     private orm: MikroORM;
-    private _em: EntityManager;
 
     public constructor(
         @inject(EMULATOR_TOKEN) private emulator: IEmulator,
@@ -25,10 +24,9 @@ export class DatabaseManager implements IDatabaseManager {
             password: this.config.get<string>('database.password'),
             debug: this.config.get<boolean>('debug') === true,
         });
-        this._em = this.orm.em.fork();
     }
 
-    public get em(): EntityManager {
-        return this._em;
+    public get newEntityManager(): EntityManager {
+        return this.orm.em.fork();
     }
 }

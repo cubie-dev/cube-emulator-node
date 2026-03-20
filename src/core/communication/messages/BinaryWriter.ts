@@ -87,7 +87,7 @@ export class BinaryWriter
 
     public getBuffer(): ArrayBuffer
     {
-        return this.buffer.buffer;
+        return <ArrayBuffer>this.buffer.buffer;
     }
 
     public toString(encoding?: string): string

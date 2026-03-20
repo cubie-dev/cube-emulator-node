@@ -1,6 +1,6 @@
-import { Bootstrapper } from '../bootstrap/Bootstrapper';
-import { LOGGER_TOKEN } from '../../api/core/logger/Logger';
-import { WinstonLogger } from './WinstonLogger';
+import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
+import { LOGGER_TOKEN } from '../../api/core/logger/Logger.js';
+import { WinstonLogger } from './WinstonLogger.js';
 
 export class LoggingBootstrapper extends Bootstrapper {
     public async registerBindings(): Promise<void> {

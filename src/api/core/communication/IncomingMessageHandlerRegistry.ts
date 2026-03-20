@@ -1,4 +1,4 @@
-import { EventHandler } from '../../../core/communication/messages/events/EventHandler';
+import { EventHandler } from '../../../core/communication/messages/events/EventHandler.js';
 import { Class } from 'utility-types';
 
 export interface IEventHandlerRegistry {

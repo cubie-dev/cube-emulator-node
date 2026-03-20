@@ -1,5 +1,5 @@
-import { EventHandler } from '../EventHandler';
-import { EventContext } from '../EventContext';
+import { EventHandler } from '../EventHandler.js';
+import { EventContext } from '../EventContext.js';
 
 /**
  * {Description} The client sends every x seconds a pong to keep the connection alive.

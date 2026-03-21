@@ -1,11 +1,11 @@
-import { inject, injectable } from 'inversify';
+import { inject } from 'inversify';
 import { RawData, Server, WebSocket, WebSocketServer } from 'ws';
-import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repository';
-import { ISocketServer } from '../../api/core/communication/SocketServer';
-import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
-import { Client } from './Client';
-import { ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';
-import { LogLevel } from '../logging/LogLevel';
+import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repository.js';
+import { ISocketServer } from '../../api/core/communication/SocketServer.js';
+import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger.js';
+import { Client } from './Client.js';
+import { ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler.js';
+import { LogLevel } from '../logging/LogLevel.js';
 
 export class SocketServer implements ISocketServer {
     private server?: Server;
@@ -24,7 +24,10 @@ export class SocketServer implements ISocketServer {
         }
 
         this.server.on('listening', this.onStartedListening.bind(this));
-        this.server.on('connection', this.onNewConnection.bind(this))
+        this.server.on('connection', this.onNewConnection.bind(this));
+        this.server.on('upgrade', (request, socket, head) => {
+            console.log(request, socket, head);
+        })
     }
 
     public stop(): void {
@@ -43,13 +46,10 @@ export class SocketServer implements ISocketServer {
     }
 
     private onStartedListening() {
-        const host = this.config.get<string>('network.host', '0.0.0.0');
-        const port = this.config.get<number>('network.port', 3333);
-
         this.logger.log(
             'Server',
             LogLevel.INFO,
-            `Server started listening on ${host}:${port}`
+            `Server started listening on ${this.server.options.host}:${this.server.options.port}`
         );
     }
 
@@ -58,7 +58,7 @@ export class SocketServer implements ISocketServer {
 
         this.clients.push(client);
 
-        client.onMessage(async (client: Client, data: RawData) => {
+        client.onMessage((client: Client, data: RawData) => {
             this.messageHandler.handle(client, data);
         });
     }
@@ -75,8 +75,8 @@ export class SocketServer implements ISocketServer {
 
         process.nextTick(() => {
             if (
-                [foundClient.socket.OPEN, foundClient.socket.CLOSING]
-                    .includes(foundClient.socket.readyState)
+                foundClient.socket.readyState === WebSocket.OPEN
+                || foundClient.socket.readyState === WebSocket.CLOSING
             ) {
                 foundClient.socket.terminate();
             }

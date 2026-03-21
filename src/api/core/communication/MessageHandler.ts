@@ -1,4 +1,4 @@
-import { Client } from '../../../core/communication/Client';
+import { Client } from '../../../core/communication/Client.js';
 import { RawData } from 'ws';
 
 export interface ISocketMessageHandler {

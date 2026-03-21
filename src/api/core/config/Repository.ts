@@ -1,4 +1,3 @@
-
 export interface IRepository {
     loadConfig(): Promise<void>;
     get<T>(key: string, defaultValue?: T|null): T;

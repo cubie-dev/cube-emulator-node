@@ -1,11 +1,11 @@
-import { ConfigBootstrapper } from './config/ConfigBootstrapper';
-import { IEmulator } from '../api/core/Emulator';
-import { Bootstrapper } from './bootstrap/Bootstrapper';
-import { ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/communication/SocketServer';
-import { NetworkBootstrapper } from './communication/NetworkBootstrapper';
-import { LoggingBootstrapper } from './logging/LoggingBootstrapper';
+import { ConfigBootstrapper } from './config/ConfigBootstrapper.js';
+import { IEmulator } from '../api/core/Emulator.js';
+import { Bootstrapper } from './bootstrap/Bootstrapper.js';
+import { ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/communication/SocketServer.js';
+import { NetworkBootstrapper } from './communication/NetworkBootstrapper.js';
+import { LoggingBootstrapper } from './logging/LoggingBootstrapper.js';
 import { Class } from 'utility-types';
-import { DatabaseBootstrapper } from './database/DatabaseBootstrapper';
+import { DatabaseBootstrapper } from './database/DatabaseBootstrapper.js';
 import * as console from 'node:console';
 
 export class EmulatorBootstrapper {
@@ -68,8 +68,8 @@ export class EmulatorBootstrapper {
 
     public async start(): Promise<void> {
         this.showBanner();
-
         await this.bootBootstrappers();
+
         this.emulator.rootContainer
             .get<ISocketServer>(SOCKET_SERVER_TOKEN)
             .start();

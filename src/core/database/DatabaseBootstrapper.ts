@@ -1,8 +1,6 @@
-import { Bootstrapper } from '../bootstrap/Bootstrapper';
-import {DATABASE_MANAGER_TOKEN, IDatabaseManager} from '../../api/core/database/DatabaseManager';
-import {DatabaseManager} from './DatabaseManager';
-import {User} from './entities/User';
-import {IEntityManager} from '../../api/core/database/IEntityManager';
+import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
+import { DATABASE_MANAGER_TOKEN, IDatabaseManager } from '../../api/core/database/DatabaseManager.js';
+import { DatabaseManager } from './DatabaseManager.js';
 
 export class DatabaseBootstrapper extends Bootstrapper {
     public async registerBindings(): Promise<void> {

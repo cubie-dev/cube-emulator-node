@@ -1,6 +1,6 @@
 import { Container } from 'inversify';
 import { Class } from 'utility-types';
-import { isClass } from '../helpers/isClass';
+import { isClass } from '../helpers/isClass.js';
 
 export type Destination<T, R> = (event: T) => Promise<R | R[] | null>;
 export type PipeFunction<T, R> = (event: T, next: Destination<T, R>) => Promise<R | R[] | null>;
@@ -26,14 +26,6 @@ export class Pipeline<T, R> {
         this.pipes = pipes;
 
         return this;
-    }
-
-    private runPipe() {
-        return (initial, pipe: PipeFunction<T, R>) => {
-            return (event: T) => {
-                return pipe(event, initial);
-            }
-        }
     }
 
     public async then(destination: Destination<T, R>): Promise<R | R[] | null> {

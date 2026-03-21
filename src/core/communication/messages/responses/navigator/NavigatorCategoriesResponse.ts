@@ -1,8 +1,8 @@
 import { Response } from '../Response.js';
 import { ResponseHeader } from '../ResponseHeader.js';
 
-export class AuthenticatedResponse extends Response {
+export class NavigatorCategoriesResponse extends Response {
     public constructor() {
-        super(ResponseHeader.AUTHENTICATED);
+        super(ResponseHeader.NAVIGATOR_CATEGORIES);
     }
 }

@@ -1,9 +1,8 @@
-import { Event } from './messages/events/Event';
-import { BinaryReader } from './messages/BinaryReader';
-import { Response } from './messages/responses/Response';
-import { BinaryWriter } from './messages/BinaryWriter';
-import { injectable } from 'inversify';
-import { ICodec } from '../../api/core/communication/Codec';
+import { Event } from './messages/events/Event.js';
+import { BinaryReader } from './messages/BinaryReader.js';
+import { Response } from './messages/responses/Response.js';
+import { BinaryWriter } from './messages/BinaryWriter.js';
+import { ICodec } from '../../api/core/communication/Codec.js';
 
 export class Codec implements ICodec {
     public decode(data: Buffer): Event {

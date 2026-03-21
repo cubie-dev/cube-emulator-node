@@ -1,4 +1,4 @@
-import { ILogger } from '../../api/core/logger/Logger';
+import { ILogger } from '../../api/core/logger/Logger.js';
 import { createLogger, Logger, format, transports } from 'winston';
 import { Format } from 'logform'
 import * as Transport from 'winston-transport';

@@ -1,14 +1,12 @@
-import { EntityManager } from '@mikro-orm/core';
-import { Client } from '../../Client';
+import { Client } from '../../Client.js';
+import { Event } from './Event.js';
+import { EntityManager } from '@mikro-orm/postgresql';
 
 export class EventContext {
     public constructor(
         public readonly client: Client,
-        public readonly entityManager: EntityManager,
+        public readonly event: Event,
+        public readonly em: EntityManager,
     ) {
-    }
-
-    public async flush(): Promise<void> {
-        await this.entityManager.flush();
     }
 }

@@ -1,11 +1,12 @@
-import { EventHandler } from '../EventHandler';
-import { Event } from '../Event';
-import { EventContext } from '../EventContext';
-import { PingResponse } from '../../responses/PingResponse';
+import { EventHandler } from '../EventHandler.js';
+import { EventContext } from '../EventContext.js';
 
+/**
+ * {Description} The client sends every x seconds a pong to keep the connection alive.
+ */
 export class PongEventHandler extends EventHandler {
-    public handle(_event: Event, context: EventContext): PingResponse {
-        context.client.lastPong = Date.now();
+    public handle(context: EventContext): null {
+        context.client.lastPongTimestamp = Date.now();
 
         return null;
     }

@@ -1,25 +1,23 @@
-import { ISocketMessageHandler } from '../../../api/core/communication/MessageHandler';
-import { Client } from '../Client';
-import { inject, injectable } from 'inversify';
-import { EventContextFactory } from './events/EventContextFactory';
+import { ISocketMessageHandler } from '../../../api/core/communication/MessageHandler.js';
+import { Client } from '../Client.js';
+import { inject } from 'inversify';
 import {
     EVENT_HANDLER_REGISTRY_TOKEN,
     IEventHandlerRegistry
-} from '../../../api/core/communication/IncomingMessageHandlerRegistry';
-import { EMULATOR_TOKEN, IEmulator } from '../../../api/core/Emulator';
-import { ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger';
-import { Response } from './responses/Response';
-import { EventContext } from './events/EventContext';
-import { CODEC_TOKEN, ICodec } from '../../../api/core/communication/Codec';
-import { LogLevel } from '../../logging/LogLevel';
-import { EVENT_CONTEXT_FACTORY_TOKEN } from '../../../api/core/communication/EventContextFactory';
-import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../../api/core/config/Repository';
-import { Pipeline } from '../../support/pipeline/Pipeline';
-import { Event } from './events/Event';
-import * as console from 'node:console';
+} from '../../../api/core/communication/IncomingMessageHandlerRegistry.js';
+import { EMULATOR_TOKEN, IEmulator } from '../../../api/core/Emulator.js';
+import { ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger.js';
+import { Response } from './responses/Response.js';
+import { EventContext } from './events/EventContext.js';
+import { CODEC_TOKEN, ICodec } from '../../../api/core/communication/Codec.js';
+import { LogLevel } from '../../logging/LogLevel.js';
+import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../../api/core/config/Repository.js';
+import { Pipeline } from '../../support/pipeline/Pipeline.js';
 import { Class } from 'utility-types';
-import { EventHandler } from './events/EventHandler';
-import { EventLoggerPipe } from '../pipes/EventLoggerPipe';
+import { EventHandler } from './events/EventHandler.js';
+import { EventLoggerPipe } from '../pipes/EventLoggerPipe.js';
+import { FlushPipe } from '../pipes/FlushPipe.js';
+import { DATABASE_MANAGER_TOKEN, IDatabaseManager } from '../../../api/core/database/DatabaseManager.js';
 
 export class SocketMessageHandler implements ISocketMessageHandler {
     public constructor(
@@ -27,45 +25,48 @@ export class SocketMessageHandler implements ISocketMessageHandler {
         @inject(EMULATOR_TOKEN) private emulator: IEmulator,
         @inject(LOGGER_TOKEN) private logger: ILogger,
         @inject(CODEC_TOKEN) private codec: ICodec,
-        @inject(EVENT_CONTEXT_FACTORY_TOKEN) private eventContextFactory: EventContextFactory,
         @inject(CONFIG_REPOSITORY_TOKEN) private configRepository: IRepository,
+        @inject(DATABASE_MANAGER_TOKEN) private databaseManager: IDatabaseManager,
     ) {
     }
 
     private async dispatchHandler(
-        event: Event,
         eventContext: EventContext,
         handler: Class<EventHandler>
     ): Promise<Response | Response[] | null> {
         return this.emulator.rootContainer
-            .get(handler)
+            .get<EventHandler>(handler)
             .handle(
-                event,
                 eventContext,
             );
     }
 
     public async handle(client: Client, data: Buffer): Promise<void> {
         const event = this.codec.decode(data);
-        const pipeline = new Pipeline<Event, Response>(
+        const pipeline = new Pipeline<EventContext, Response>(
             this.emulator.rootContainer
         );
-        const eventContext = this.eventContextFactory.makeForClient(client);
+        const eventContext = new EventContext(
+            client,
+            event,
+            this.databaseManager.newEntityManager,
+        );
 
         try {
             const response = await pipeline
-                .send(event)
+                .send(eventContext)
                 .through([
                     EventLoggerPipe,
+                    FlushPipe,
                 ])
-                .then( (event: Event) => {
-                    const handler = this.handlerRegistry.getByHeader(event.header);
+                .then( (context: EventContext) => {
+                    const handler = this.handlerRegistry.getByHeader(context.event.header);
 
                     if (!handler) {
                         throw new Error(`No handler found for header: ${event.header}`);
                     }
 
-                    return this.dispatchHandler(event, eventContext, handler);
+                    return this.dispatchHandler(context, handler);
                 });
 
             if (! response) {
@@ -80,8 +81,6 @@ export class SocketMessageHandler implements ISocketMessageHandler {
     }
 
     private async flushAndRespond(context: EventContext, response: Response | Response[]): Promise<void> {
-        await context.flush();
-
         const responses = Array.isArray(response) ? response : [response];
 
         for (const response of responses) {

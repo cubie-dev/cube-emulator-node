@@ -1,7 +1,7 @@
-import { Bootstrapper } from '../bootstrap/Bootstrapper';
-import { IEventHandlerRegistry, EVENT_HANDLER_REGISTRY_TOKEN } from '../../api/core/communication/IncomingMessageHandlerRegistry';
-import { EventHandlerRegistry } from './messages/EventHandlerRegistry';
-import { eventHandlerMap } from './messages/events/eventHandlerMap';
+import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
+import { IEventHandlerRegistry, EVENT_HANDLER_REGISTRY_TOKEN } from '../../api/core/communication/IncomingMessageHandlerRegistry.js';
+import { EventHandlerRegistry } from './messages/EventHandlerRegistry.js';
+import { eventHandlerMap } from './messages/events/eventHandlerMap.js';
 
 export class EventAndResponsesBootstrapper extends Bootstrapper {
     public async registerBindings(): Promise<void> {

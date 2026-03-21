@@ -1,5 +1,5 @@
 import { IDatabaseManager } from '../../api/core/database/DatabaseManager';
-import { EntityManager, MikroORM } from '@mikro-orm/mysql';
+import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { inject } from 'inversify';
 import { EMULATOR_TOKEN, IEmulator } from '../../api/core/Emulator';
 import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repository';
@@ -26,7 +26,7 @@ export class DatabaseManager implements IDatabaseManager {
         });
     }
 
-    public get freshEntityManager(): EntityManager {
+    public get newEntityManager(): EntityManager {
         return this.orm.em.fork();
     }
 }

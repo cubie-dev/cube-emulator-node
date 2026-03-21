@@ -6,9 +6,9 @@
     },
     "database": {
         "host": "db",
-        "port": 3306,
-        "name": "emulator",
-        "username": "emulator",
-        "password": "emulator"
+        "port": 5432,
+        "name": "cube-emulator",
+        "username": "cube-emulator",
+        "password": "cube-emulator"
     }
 }

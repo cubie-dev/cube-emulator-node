@@ -1,16 +1,12 @@
-import { Bootstrapper } from '../bootstrap/Bootstrapper';
-import { ISocketServer, SOCKET_SERVER_TOKEN } from '../../api/core/communication/SocketServer';
-import { SocketServer } from './SocketServer';
-import { ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';
-import { SocketMessageHandler } from './messages/SocketMessageHandler';
-import { EventAndResponsesBootstrapper } from './EventAndResponsesBootstrapper';
+import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
+import { ISocketServer, SOCKET_SERVER_TOKEN } from '../../api/core/communication/SocketServer.js';
+import { SocketServer } from './SocketServer.js';
+import { ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler.js';
+import { SocketMessageHandler } from './messages/SocketMessageHandler.js';
+import { EventAndResponsesBootstrapper } from './EventAndResponsesBootstrapper.js';
 import { Class } from 'utility-types';
-import { Codec } from './Codec';
-import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
-import { LogLevel } from '../logging/LogLevel';
-import { EventContextFactory } from './messages/events/EventContextFactory';
-import { CODEC_TOKEN, ICodec } from '../../api/core/communication/Codec';
-import { EVENT_CONTEXT_FACTORY_TOKEN, IEventContextFactory } from '../../api/core/communication/EventContextFactory';
+import { Codec } from './Codec.js';
+import { CODEC_TOKEN, ICodec } from '../../api/core/communication/Codec.js';
 
 export class NetworkBootstrapper extends Bootstrapper {
     public async registerBindings(): Promise<void> {
@@ -27,9 +23,6 @@ export class NetworkBootstrapper extends Bootstrapper {
         this.emulator.rootContainer
             .bind<ICodec>(CODEC_TOKEN)
             .to(Codec);
-        this.emulator.rootContainer
-            .bind<IEventContextFactory>(EVENT_CONTEXT_FACTORY_TOKEN)
-            .to(EventContextFactory);
     }
 
     public async stop(): Promise<void> {

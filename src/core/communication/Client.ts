@@ -1,5 +1,5 @@
 import { RawData, WebSocket } from 'ws';
-import { User } from '../database/entities/User';
+import { User } from '../database/entities/User.js';
 
 export class Client {
     private _user: User;

@@ -1,7 +1,7 @@
 import { Entity, EntityRepositoryType, Enum, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import {UserRepository} from '../repositories/UserRepository';
-import { Gender } from '../enums/Gender';
-import { UserStats } from './UserStats';
+import {UserRepository} from '../repositories/UserRepository.js';
+import { Gender } from '../enums/Gender.js';
+import { UserStats } from './UserStats.js';
 
 @Entity({
     tableName: 'users',

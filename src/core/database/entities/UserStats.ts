@@ -1,5 +1,5 @@
 import { BooleanType, Entity, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import { User } from './User';
+import { User } from './User.js';
 
 @Entity({ tableName: 'user_stats'})
 export class UserStats {

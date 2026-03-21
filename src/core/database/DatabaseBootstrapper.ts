@@ -1,5 +1,5 @@
 import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
-import { DATABASE_MANAGER_TOKEN, IDatabaseManager } from '../../api/core/database/DatabaseManager.js';
+import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../api/core/database/DatabaseManager.js';
 import { DatabaseManager } from './DatabaseManager.js';
 
 export class DatabaseBootstrapper extends Bootstrapper {

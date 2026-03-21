@@ -1,4 +1,4 @@
-import { LogLevel } from '../../../core/logging/LogLevel.js';
+import { LogLevel } from '../../../core/logging/LogLevel';
 
 export interface ILogger {
     log(context: string, level: LogLevel, message: string): void;

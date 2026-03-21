@@ -1,14 +1,14 @@
 import { inject } from 'inversify';
-import { RawData, Server, WebSocket, WebSocketServer } from 'ws';
-import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repository.js';
-import { ISocketServer } from '../../api/core/communication/SocketServer.js';
-import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger.js';
+import { Server, ServerWebSocket } from 'bun';
+import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../api/core/config/Repository.js';
+import type { ISocketServer } from '../../api/core/communication/SocketServer.js';
+import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger.js';
 import { Client } from './Client.js';
-import { ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler.js';
+import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler.js';
 import { LogLevel } from '../logging/LogLevel.js';
 
 export class SocketServer implements ISocketServer {
-    private server?: Server;
+    private server?: Server<Client>;
     private clients: Client[] = [];
 
     public constructor(
@@ -19,67 +19,51 @@ export class SocketServer implements ISocketServer {
     }
 
     public start(): void {
-        if (!this.server) {
-            this.createServer();
-        }
+        const port = this.config.get<number>('network.port', 3333);
+        const hostname = this.config.get<string>('network.host', '0.0.0.0');
 
-        this.server.on('listening', this.onStartedListening.bind(this));
-        this.server.on('connection', this.onNewConnection.bind(this));
-        this.server.on('upgrade', (request, socket, head) => {
-            console.log(request, socket, head);
-        })
+        this.server = Bun.serve({
+            port,
+            hostname,
+            fetch: (req: Request, server: Server<Client>) => {
+                if (server.upgrade(req, { data: null })) {
+                    return
+                }
+
+                return new Response('WebSocket upgrade required', { status: 426 });
+            },
+            websocket: {
+                open: (ws: ServerWebSocket<Client>) => {
+                    const client = new Client(ws);
+                    ws.data = client;
+
+                    this.clients.push(client);
+                },
+                message: (ws: ServerWebSocket<Client>, data: Buffer | string) => {
+                    this.messageHandler.handle(ws.data, data instanceof Buffer ? data : Buffer.from(data));
+                },
+                close: (ws: ServerWebSocket<Client>) => {
+                    this.clients = this.clients.filter(c => c !== ws.data);
+                },
+            },
+        });
+
+        this.logger.log('Server', LogLevel.INFO, `Server started listening on ${hostname}:${port}`);
     }
 
     public stop(): void {
         this.logger.log('Server', LogLevel.INFO, 'Stopping...');
+        this.server?.stop();
     }
 
-    private createServer(): void {
-        this.server = new WebSocketServer({
-            port: this.config.get<number>('network.port', 3333),
-            host: this.config.get<string>('network.host', '0.0.0.0'),
-            verifyClient: (info, cb) => {
-                // TODO verify client
-                cb(true);
-            },
-        })
-    }
+    public disposeClient(client: Client): void {
+        const index = this.clients.indexOf(client);
 
-    private onStartedListening() {
-        this.logger.log(
-            'Server',
-            LogLevel.INFO,
-            `Server started listening on ${this.server.options.host}:${this.server.options.port}`
-        );
-    }
-
-    private onNewConnection(socket: WebSocket) {
-        const client = new Client(socket);
-
-        this.clients.push(client);
-
-        client.onMessage((client: Client, data: RawData) => {
-            this.messageHandler.handle(client, data);
-        });
-    }
-
-    public disposeClient(client: Client) {
-        // TODO generate ID?
-        const foundClient = this.clients.find((c: Client) => c === client);
-
-        if (!foundClient) {
+        if (index === -1) {
             return;
         }
 
-        foundClient.socket.close();
-
-        process.nextTick(() => {
-            if (
-                foundClient.socket.readyState === WebSocket.OPEN
-                || foundClient.socket.readyState === WebSocket.CLOSING
-            ) {
-                foundClient.socket.terminate();
-            }
-        });
+        this.clients.splice(index, 1);
+        client.socket.close();
     }
 }

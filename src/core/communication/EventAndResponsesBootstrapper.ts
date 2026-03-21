@@ -1,5 +1,5 @@
 import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
-import { IEventHandlerRegistry, EVENT_HANDLER_REGISTRY_TOKEN } from '../../api/core/communication/IncomingMessageHandlerRegistry.js';
+import { type IEventHandlerRegistry, EVENT_HANDLER_REGISTRY_TOKEN } from '../../api/core/communication/IncomingMessageHandlerRegistry.js';
 import { EventHandlerRegistry } from './messages/EventHandlerRegistry.js';
 import { eventHandlerMap } from './messages/events/eventHandlerMap.js';
 

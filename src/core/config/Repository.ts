@@ -1,7 +1,7 @@
-import { IRepository } from '../../api/core/config/Repository.js';
+import type { IRepository } from '../../api/core/config/Repository.js';
 import { inject } from 'inversify';
 import { readFile } from 'node:fs/promises';
-import { EMULATOR_TOKEN, IEmulator } from '../../api/core/Emulator.js';
+import { EMULATOR_TOKEN, type IEmulator } from '../../api/core/Emulator.js';
 import { join as joinPaths } from 'node:path';
 import { get } from 'lodash-es';
 

@@ -1,7 +1,7 @@
 import { Destination, PipeClass } from '../../support/pipeline/Pipeline.js';
 import { Response } from '../messages/responses/Response.js';
 import { inject } from 'inversify';
-import { ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger.js';
+import { type ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger.js';
 import { LogLevel } from '../../logging/LogLevel.js';
 import { EventContext } from '../messages/events/EventContext.js';
 

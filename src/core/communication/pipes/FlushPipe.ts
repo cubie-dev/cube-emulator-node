@@ -1,6 +1,6 @@
-import { Destination, PipeClass } from '../../support/pipeline/Pipeline.js';
-import { Response } from '../messages/responses/Response.js';
-import { EventContext } from '../messages/events/EventContext.js';
+import { Destination, PipeClass } from '../../support/pipeline/Pipeline';
+import { Response } from '../messages/responses/Response';
+import { EventContext } from '../messages/events/EventContext';
 
 /**
  * Responsible for flushing all changes before sending the response back to the client.

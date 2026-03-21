@@ -1,8 +1,7 @@
 import { Client } from '../../../core/communication/Client.js';
-import { RawData } from 'ws';
 
 export interface ISocketMessageHandler {
-    handle(client: Client, data: RawData): void;
+    handle(client: Client, data: Buffer): void;
 }
 
 export const SOCKET_MESSAGE_HANDLER_TOKEN = Symbol.for('ISocketMessageHandler');

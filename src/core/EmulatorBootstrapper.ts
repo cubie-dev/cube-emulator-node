@@ -1,7 +1,7 @@
 import { ConfigBootstrapper } from './config/ConfigBootstrapper.js';
-import { IEmulator } from '../api/core/Emulator.js';
+import type { IEmulator } from '../api/core/Emulator.js';
 import { Bootstrapper } from './bootstrap/Bootstrapper.js';
-import { ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/communication/SocketServer.js';
+import { type ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/communication/SocketServer.js';
 import { NetworkBootstrapper } from './communication/NetworkBootstrapper.js';
 import { LoggingBootstrapper } from './logging/LoggingBootstrapper.js';
 import { Class } from 'utility-types';
@@ -73,13 +73,10 @@ export class EmulatorBootstrapper {
         this.emulator.rootContainer
             .get<ISocketServer>(SOCKET_SERVER_TOKEN)
             .start();
-
-        this.emulator.events.emit('started');
     }
 
     public async stop(): Promise<void> {
         void this.stopBootstrappers();
-        this.emulator.events.emit('stopped');
     }
 
     private showBanner(): void {

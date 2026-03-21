@@ -1,5 +1,5 @@
-import { Client } from '../../Client.js';
-import { Event } from './Event.js';
+import { Client } from '../../Client';
+import { Event } from './Event';
 import { EntityManager } from '@mikro-orm/postgresql';
 
 export class EventContext {

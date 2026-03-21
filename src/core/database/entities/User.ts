@@ -1,7 +1,7 @@
-import { Entity, EntityRepositoryType, Enum, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import {UserRepository} from '../repositories/UserRepository.js';
-import { Gender } from '../enums/Gender.js';
-import { UserStats } from './UserStats.js';
+import { Entity, EntityRepositoryType, Enum, OneToOne, PrimaryKey, Property, type Rel } from '@mikro-orm/core';
+import {UserRepository} from '../repositories/UserRepository';
+import { Gender } from '../enums/Gender';
+import { UserStats } from './UserStats';
 
 @Entity({
     tableName: 'users',
@@ -39,7 +39,7 @@ export class User {
 
     @OneToOne(
         () => UserStats,
-        (stats: UserStats) => stats.user
+        (stats: UserStats) => stats.user,
     )
-    public stats: UserStats;
+    public stats: Rel<UserStats>;
 }

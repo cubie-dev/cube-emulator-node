@@ -1,5 +1,5 @@
 import { EmulatorBootstrapper } from './EmulatorBootstrapper.js';
-import { EMULATOR_TOKEN, IEmulator } from '../api/core/Emulator.js';
+import { EMULATOR_TOKEN, type IEmulator } from '../api/core/Emulator.js';
 import { EventEmitter } from 'node:events';
 import { Container } from 'inversify';
 import { buildProviderModule } from '@inversifyjs/binding-decorators';

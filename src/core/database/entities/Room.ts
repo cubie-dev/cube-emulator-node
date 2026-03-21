@@ -1,7 +1,7 @@
 import { Entity, EntityRepositoryType, ManyToOne, OneToMany, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import { RoomRepository } from '../repositories/RoomRepository.js';
-import { NavigatorCategory } from './NavigatorCategory.js';
-import { User } from './User.js';
+import { RoomRepository } from '../repositories/RoomRepository';
+import { NavigatorCategory } from './NavigatorCategory';
+import { User } from './User';
 
 @Entity({
     tableName: 'rooms',

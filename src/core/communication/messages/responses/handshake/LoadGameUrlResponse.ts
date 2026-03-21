@@ -1,6 +1,6 @@
-import { Response } from '../Response.js';
-import { ResponseHeader } from '../ResponseHeader.js';
-import { GameType } from '../../../../../game/GameType.js';
+import { Response } from '../Response';
+import { ResponseHeader } from '../ResponseHeader';
+import { GameType } from '../../../../../game/GameType';
 
 export class LoadGameUrlResponse extends Response {
     public constructor(

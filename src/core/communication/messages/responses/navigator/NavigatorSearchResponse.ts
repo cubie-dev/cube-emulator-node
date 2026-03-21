@@ -1,6 +1,6 @@
-import { Response } from '../Response.js';
-import { ResponseHeader } from '../ResponseHeader.js';
-import { Room } from '../../../../database/entities/Room.js';
+import { Response } from '../Response';
+import { ResponseHeader } from '../ResponseHeader';
+import { Room } from '../../../../database/entities/Room';
 
 /**
  * @see nitro/communication/messages/parser/navigator/NavigatorSearchParser.ts

@@ -1,4 +1,4 @@
-import { IEmulator } from '../../api/core/Emulator.js';
+import type { IEmulator } from '../../api/core/Emulator.js';
 import { Class } from 'utility-types';
 
 export class Bootstrapper {

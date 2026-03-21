@@ -4,12 +4,13 @@
             "ES2023",
         ],
         "module": "ESNext",
-        "moduleResolution": "node16",
+        "moduleResolution": "bundler",
         "target": "ES2023",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "esModuleInterop": true,
         "baseUrl": "./src",
         "resolveJsonModule": true,
+        "types": ["bun-types"],
     }
 }

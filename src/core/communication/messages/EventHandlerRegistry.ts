@@ -1,4 +1,4 @@
-import { IEventHandlerRegistry } from '../../../api/core/communication/IncomingMessageHandlerRegistry.js';
+import type { IEventHandlerRegistry } from '../../../api/core/communication/IncomingMessageHandlerRegistry.js';
 import { Class } from 'utility-types';
 import { EventHandler } from './events/EventHandler.js';
 

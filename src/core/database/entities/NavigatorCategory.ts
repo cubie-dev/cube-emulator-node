@@ -1,6 +1,6 @@
 import { BooleanType, Collection, Entity, OneToMany, PrimaryKey, Property } from '@mikro-orm/core';
-import { Room } from './Room.js';
-import { StringEnumBool } from '../types/StringEnumBool.js';
+import { Room } from './Room';
+import { StringEnumBool } from '../types/StringEnumBool';
 
 @Entity({
     tableName: 'navigator_categories',

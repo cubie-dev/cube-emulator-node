@@ -1,11 +1,11 @@
 import { EventHandler } from './EventHandler';
 import { EventHeader } from './EventHeader';
-import { Class } from 'utility-types';
 import { ReleaseVersionEventHandler } from './handlers/ReleaseVersionEventHandler';
 import { PongEventHandler } from './handlers/PongEventHandler';
 import { SsoEventHandler } from './handlers/handshake/SsoEventHandler';
 import { NavigationInitEvent } from './handlers/navigation/NavigationInitEvent';
 import { NavigatorSearchEvent } from './handlers/navigation/NavigatorSearchEvent';
+import { Class } from '../../../support/types/Class';
 
 const eventHandlerMap = new Map<number, Class<EventHandler>>();
 

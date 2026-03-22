@@ -1,32 +1,21 @@
-import { BooleanType, Collection, Entity, OneToMany, PrimaryKey, Property } from '@mikro-orm/core';
+import { defineEntity } from '@mikro-orm/core';
+import { p } from '@mikro-orm/postgresql';
 import { Room } from './Room';
-import { StringEnumBool } from '../types/StringEnumBool';
 
-@Entity({
+const navigatorCategorySchema = defineEntity({
+    name: 'NavigatorCategory',
     tableName: 'navigator_categories',
-})
-export class NavigatorCategory {
-    @PrimaryKey({
-        fieldName: 'id',
-        type: 'numeric'
-    })
-    public id!: number;
+    properties: {
+        id: p.integer()
+            .primary()
+            .fieldName('id'),
+        name: p.text()
+            .fieldName('name'),
+        rooms: () => p.oneToMany(Room)
+            .mappedBy(room => room.category),
+    }
+});
 
-    @Property({
-        fieldName: 'name',
-        type: 'string',
-    })
-    public name!: string;
+export class NavigatorCategory extends navigatorCategorySchema.class {}
 
-    @OneToMany(
-        () => Room,
-        (room: Room) => room.category,
-    )
-    public rooms: Collection<Room>;
-
-    @Property({
-        fieldName: 'public',
-        type: StringEnumBool,
-    })
-    public isPublic!: boolean;
-}
+navigatorCategorySchema.setClass(NavigatorCategory);

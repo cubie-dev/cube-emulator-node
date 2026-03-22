@@ -19,7 +19,7 @@ export class DatabaseManager implements IDatabaseManager {
 
     public async boot(): Promise<void> {
         this.orm = await MikroORM.init({
-            entities: [User, UserStats, NavigatorCategory, Room],
+            entities: [UserStats, User, Room, NavigatorCategory],
             baseDir: this.emulator.rootDirectory,
             dbName: this.config.get<string>('database.name'),
             host: this.config.get<string>('database.host'),

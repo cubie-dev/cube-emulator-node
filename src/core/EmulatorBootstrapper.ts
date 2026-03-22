@@ -4,9 +4,8 @@ import { Bootstrapper } from './bootstrap/Bootstrapper.js';
 import { type ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/communication/SocketServer.js';
 import { NetworkBootstrapper } from './communication/NetworkBootstrapper.js';
 import { LoggingBootstrapper } from './logging/LoggingBootstrapper.js';
-import { Class } from 'utility-types';
 import { DatabaseBootstrapper } from './database/DatabaseBootstrapper.js';
-import * as console from 'node:console';
+import { Class } from './support/types/Class';
 
 export class EmulatorBootstrapper {
     /**

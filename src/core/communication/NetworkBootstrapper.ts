@@ -4,9 +4,9 @@ import { SocketServer } from './SocketServer.js';
 import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler.js';
 import { SocketMessageHandler } from './messages/SocketMessageHandler.js';
 import { EventAndResponsesBootstrapper } from './EventAndResponsesBootstrapper.js';
-import { Class } from 'utility-types';
 import { Codec } from './Codec.js';
 import { CODEC_TOKEN, type ICodec } from '../../api/core/communication/Codec.js';
+import { Class } from '../support/types/Class';
 
 export class NetworkBootstrapper extends Bootstrapper {
     public async registerBindings(): Promise<void> {

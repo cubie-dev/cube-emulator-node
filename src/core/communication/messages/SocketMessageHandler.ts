@@ -13,11 +13,11 @@ import { CODEC_TOKEN, type ICodec } from '../../../api/core/communication/Codec.
 import { LogLevel } from '../../logging/LogLevel.js';
 import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../../api/core/config/Repository.js';
 import { Pipeline } from '../../support/pipeline/Pipeline.js';
-import { Class } from 'utility-types';
 import { EventHandler } from './events/EventHandler.js';
 import { EventLoggerPipe } from '../pipes/EventLoggerPipe.js';
 import { FlushPipe } from '../pipes/FlushPipe.js';
 import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../../api/core/database/DatabaseManager.js';
+import { Class } from '../../support/types/Class';
 
 export class SocketMessageHandler implements ISocketMessageHandler {
     public constructor(

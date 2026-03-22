@@ -1,6 +1,6 @@
-import { IEventHandlerRegistry } from '../../../api/core/communication/IncomingMessageHandlerRegistry.js';
-import { Class } from 'utility-types';
-import { EventHandler } from './events/EventHandler.js';
+import { type IEventHandlerRegistry } from '../../../api/core/communication/EventHandlerRegistry';
+import { EventHandler } from './events/EventHandler';
+import { type Class } from '../../support/types/Class';
 
 export class EventHandlerRegistry implements IEventHandlerRegistry {
     private handlers: Map<number, Class<EventHandler>> = new Map();

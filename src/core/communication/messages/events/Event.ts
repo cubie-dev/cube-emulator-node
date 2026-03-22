@@ -1,4 +1,4 @@
-import { BinaryReader } from '../BinaryReader.js';
+import { BinaryReader } from '../BinaryReader';
 
 export class Event {
 

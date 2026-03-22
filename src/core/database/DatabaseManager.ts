@@ -1,8 +1,12 @@
-import { IDatabaseManager } from '../../api/core/database/DatabaseManager';
+import { type IDatabaseManager } from '../../api/core/database/DatabaseManager';
 import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { inject } from 'inversify';
-import { EMULATOR_TOKEN, IEmulator } from '../../api/core/Emulator';
-import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repository';
+import { EMULATOR_TOKEN, type IEmulator } from '../../api/core/Emulator';
+import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../api/core/config/Repository';
+import { User } from './entities/User';
+import { UserStats } from './entities/UserStats';
+import { NavigatorCategory } from './entities/NavigatorCategory';
+import { Room } from './entities/Room';
 
 export class DatabaseManager implements IDatabaseManager {
     private orm: MikroORM;
@@ -15,7 +19,7 @@ export class DatabaseManager implements IDatabaseManager {
 
     public async boot(): Promise<void> {
         this.orm = await MikroORM.init({
-            entities: ['core/database/entities/**/*.ts'],
+            entities: [UserStats, User, Room, NavigatorCategory],
             baseDir: this.emulator.rootDirectory,
             dbName: this.config.get<string>('database.name'),
             host: this.config.get<string>('database.host'),

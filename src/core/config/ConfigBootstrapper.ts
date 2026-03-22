@@ -1,8 +1,8 @@
-import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
-import { CONFIG_REPOSITORY_TOKEN, IRepository } from '../../api/core/config/Repository.js';
-import { Repository } from './Repository.js';
-import { ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger.js';
-import { LogLevel } from '../logging/LogLevel.js';
+import { Bootstrapper } from '../bootstrap/Bootstrapper';
+import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../api/core/config/Repository';
+import { Repository } from './Repository';
+import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
+import { LogLevel } from '../logging/LogLevel';
 
 export class ConfigBootstrapper extends Bootstrapper {
     public async registerBindings(): Promise<void> {

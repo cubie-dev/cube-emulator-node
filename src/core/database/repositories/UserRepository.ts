@@ -1,5 +1,5 @@
 import { EntityRepository } from '@mikro-orm/core';
-import { User } from '../entities/User.js';
+import { User } from '../entities/User';
 
 export class UserRepository extends EntityRepository<User> {
 }

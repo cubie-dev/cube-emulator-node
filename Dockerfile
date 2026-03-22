@@ -1,5 +1,5 @@
-FROM node:22-alpine
+FROM oven/bun:alpine
 
 WORKDIR /emulator
 
-CMD ["npm", "run", "watch"]
+CMD ["bun", "--watch", "src/main.ts"]

@@ -1,13 +1,13 @@
 docker-compose-api-run := "docker compose run"
 
 start:
-    {{docker-compose-api-run}} --rm --service-ports emulator npm run watch
+    {{docker-compose-api-run}} --rm --service-ports emulator bun --watch src/main.ts
 
-npm *args:
-    {{docker-compose-api-run}} --rm emulator npm {{args}}
+bun *args:
+    {{docker-compose-api-run}} --rm emulator bun {{args}}
 
 logs:
     docker logs $(docker ps -aqf "name=cube-emulator-node-emulator-run-.*") -f
 
-npx *args:
-    {{docker-compose-api-run}} --rm emulator npx {{args}}
+bunx *args:
+    {{docker-compose-api-run}} --rm emulator bunx {{args}}

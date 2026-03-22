@@ -1,45 +1,31 @@
-import { Entity, EntityRepositoryType, Enum, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import {UserRepository} from '../repositories/UserRepository.js';
-import { Gender } from '../enums/Gender.js';
-import { UserStats } from './UserStats.js';
+import { defineEntity } from '@mikro-orm/core';
+import {UserRepository} from '../repositories/UserRepository';
+import { Gender } from '../enums/Gender';
+import { UserStats } from './UserStats';
+import { p } from '@mikro-orm/postgresql';
 
-@Entity({
+const userSchema = defineEntity({
+    name: 'User',
     tableName: 'users',
     repository: () => UserRepository,
-})
-export class User {
-    [EntityRepositoryType]?: UserRepository;
+    properties: {
+        id: p.integer()
+            .primary()
+            .fieldName('id'),
+        username: p.text()
+            .fieldName('username'),
+        look: p.text()
+            .fieldName('look'),
+        gender: p.enum(() => Gender)
+            .fieldName('gender'),
+        authToken: p.text()
+            .nullable()
+            .fieldName('auth_token'),
+        stats: () => p.oneToOne(UserStats)
+            .mappedBy(stats => stats.user)
+    }
+});
 
-    @PrimaryKey({ type: 'numeric' })
-    public id: number;
+export class User extends userSchema.class {}
 
-    @Property({
-        fieldName: 'username',
-        type: 'varchar',
-    })
-    public username: string;
-
-    @Property({
-        fieldName: 'look',
-        type: 'varchar',
-    })
-    public look: string;
-
-    @Enum({
-        fieldName: 'gender',
-        items: () => Gender
-    })
-    public gender: Gender;
-
-    @Property({
-        fieldName: 'auth_token',
-        type: 'text',
-    })
-    public authToken: string | null;
-
-    @OneToOne(
-        () => UserStats,
-        (stats: UserStats) => stats.user
-    )
-    public stats: UserStats;
-}
+userSchema.setClass(User);

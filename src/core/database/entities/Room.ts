@@ -1,39 +1,26 @@
-import { Entity, EntityRepositoryType, ManyToOne, OneToMany, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import { RoomRepository } from '../repositories/RoomRepository.js';
-import { NavigatorCategory } from './NavigatorCategory.js';
-import { User } from './User.js';
+import { defineEntity } from '@mikro-orm/core';
+import { RoomRepository } from '../repositories/RoomRepository';
+import { NavigatorCategory } from './NavigatorCategory';
+import { User } from './User';
+import { p } from '@mikro-orm/postgresql';
 
-@Entity({
+const roomSchema = defineEntity({
+    name: 'Room',
     tableName: 'rooms',
     repository: () => RoomRepository,
+    properties: {
+        id: p.integer()
+            .primary(),
+        name: p.text(),
+        owner: p.manyToOne(User)
+            .fieldName('owner_id')
+            .owner(),
+        category: () => p.manyToOne(NavigatorCategory)
+            .fieldName('category_id')
+            .owner(),
+    }
 })
-export class Room {
-    [EntityRepositoryType]?: RoomRepository;
 
-    @PrimaryKey({
-        type: 'numeric'
-    })
-    public id!: number;
+export class Room extends roomSchema.class {}
 
-    @Property({
-        fieldName: 'name',
-        type: 'varchar',
-    })
-    public name!: string;
-
-    @ManyToOne(
-        () => User,
-        {
-            fieldName: 'owner_id',
-        }
-    )
-    public owner: User;
-
-    @ManyToOne(
-        () => NavigatorCategory,
-        {
-            fieldName: 'category_id',
-        }
-    )
-    public category: NavigatorCategory;
-}
+roomSchema.setClass(Room);

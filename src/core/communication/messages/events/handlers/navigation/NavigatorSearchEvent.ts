@@ -1,8 +1,8 @@
-import { Event } from '../../Event.js';
-import { EventHandler } from '../../EventHandler.js';
-import { EventContext } from '../../EventContext.js';
-import { NavigatorSearchResponse } from '../../../responses/navigator/NavigatorSearchResponse.js';
-import { Room } from '../../../../../database/entities/Room.js';
+import { Event } from '../../Event';
+import { EventHandler } from '../../EventHandler';
+import { EventContext } from '../../EventContext';
+import { NavigatorSearchResponse } from '../../../responses/navigator/NavigatorSearchResponse';
+import { Room } from '../../../../../database/entities/Room';
 
 export class NavigatorSearchEvent extends EventHandler {
 

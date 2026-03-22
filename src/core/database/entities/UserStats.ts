@@ -1,27 +1,23 @@
-import { BooleanType, Entity, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
-import { User } from './User.js';
+import { defineEntity } from '@mikro-orm/core';
+import { p } from '@mikro-orm/postgresql';
+import { User } from './User';
 
-@Entity({ tableName: 'user_stats'})
-export class UserStats {
-    @PrimaryKey({
-        fieldName: 'id',
-        type: 'numeric',
-    })
-    public id!: number;
+const userStatsSchema = defineEntity({
+    name: 'UserStats',
+    tableName: 'user_stats',
+    properties: {
+        id: p.integer()
+            .primary()
+            .fieldName('id'),
+        respectReceived: p.integer()
+            .fieldName('respect_received'),
+        user: () => p.oneToOne(User)
+            .inversedBy((user) => user.stats)
+            .fieldName('user_id')
+            .owner(),
+    }
+});
 
-    @Property({
-        fieldName: 'respect_received',
-        type: 'numeric',
-    })
-    public respectReceived!: number;
+export class UserStats extends userStatsSchema.class {}
 
-    @OneToOne(
-        () => User,
-        (user: User) => user.stats,
-        {
-            fieldName: 'user_id',
-            owner: true,
-        }
-    )
-    public user!: User;
-}
+userStatsSchema.setClass(UserStats);

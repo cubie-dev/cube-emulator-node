@@ -1,5 +1,5 @@
-import { Response } from '../Response.js';
-import { ResponseHeader } from '../ResponseHeader.js';
+import { Response } from '../Response';
+import { ResponseHeader } from '../ResponseHeader';
 
 export class NavigatorMetaDataResponse extends Response {
     public constructor() {

@@ -1,5 +1,5 @@
-import { Response } from '../Response.js';
-import { ResponseHeader } from '../ResponseHeader.js';
+import { Response } from '../Response';
+import { ResponseHeader } from '../ResponseHeader';
 
 export class AuthenticatedResponse extends Response {
     public constructor() {

@@ -6,16 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Run in development (direct)
-npm run dev        # tsx src/main.ts
-npm run watch      # tsx watch src/main.ts (file watching)
+bun run dev        # bun src/main.ts
+bun run watch      # bun --watch src/main.ts (file watching)
 
 # Run via Docker (preferred — includes PostgreSQL)
 just start         # docker compose run with file watching
-just npm <args>    # run any npm command inside container
+just bun <args>    # run any bun command inside container
 just logs          # tail logs from running container
 ```
 
-The project uses `just` as a task runner. Docker Compose brings up both the emulator and a PostgreSQL 18 container. The emulator binds to port 3333.
+The project uses `just` as a task runner. Docker Compose brings up both the emulator and a PostgreSQL 18 container. The emulator binds to port 3333. The runtime is Bun (not Node.js) — the Docker image is `oven/bun:alpine`.
 
 ## Configuration
 

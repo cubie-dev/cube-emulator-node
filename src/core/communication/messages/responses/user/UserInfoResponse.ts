@@ -1,6 +1,6 @@
-import { Response } from '../Response.js';
-import { User } from '../../../../database/entities/User.js';
-import { ResponseHeader } from '../ResponseHeader.js';
+import { Response } from '../Response';
+import { User } from '../../../../database/entities/User';
+import { ResponseHeader } from '../ResponseHeader';
 
 export class UserInfoResponse extends Response {
     public constructor(user: User) {

@@ -1,5 +1,5 @@
-import { EventHandler } from '../../../core/communication/messages/events/EventHandler.js';
-import { Class } from 'utility-types';
+import { EventHandler } from '../../../core/communication/messages/events/EventHandler';
+import { type Class } from '../../../core/support/types/Class';
 
 export interface IEventHandlerRegistry {
     overwriteHandlers(handlers: Map<number, Class<EventHandler>>): void;

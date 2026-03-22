@@ -1,16 +1,27 @@
 {
     "compilerOptions": {
         "lib": [
-            "ES2023",
+            "ES2023"
         ],
-        "module": "ESNext",
         "moduleResolution": "bundler",
-        "target": "ES2023",
+        "target": "ESNext",
+        "module": "preserve",
+        "moduleDetection": "force",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
+        "allowImportingTsExtensions": true,
+        "verbatimModuleSyntax": true,
+        "noEmit": true,
         "esModuleInterop": true,
         "baseUrl": "./src",
         "resolveJsonModule": true,
-        "types": ["bun-types"],
+        "strict": true,
+        "skipLibCheck": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "noImplicitOverride": true,
+        "types": [
+            "bun-types"
+        ]
     }
 }

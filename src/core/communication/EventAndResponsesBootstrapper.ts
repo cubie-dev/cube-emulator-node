@@ -1,6 +1,6 @@
-import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
-import { EventHandlerRegistry } from './messages/EventHandlerRegistry.js';
-import { eventHandlerMap } from './messages/events/eventHandlerMap.js';
+import { Bootstrapper } from '../bootstrap/Bootstrapper';
+import { EventHandlerRegistry } from './messages/EventHandlerRegistry';
+import { eventHandlerMap } from './messages/events/eventHandlerMap';
 import { EVENT_HANDLER_REGISTRY_TOKEN, IEventHandlerRegistry } from '../../api/core/communication/EventHandlerRegistry';
 
 export class EventAndResponsesBootstrapper extends Bootstrapper {

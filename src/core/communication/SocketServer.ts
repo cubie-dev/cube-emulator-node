@@ -1,11 +1,11 @@
 import { inject } from 'inversify';
 import { Server, ServerWebSocket } from 'bun';
-import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../api/core/config/Repository.js';
-import type { ISocketServer } from '../../api/core/communication/SocketServer.js';
-import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger.js';
-import { Client } from './Client.js';
-import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler.js';
-import { LogLevel } from '../logging/LogLevel.js';
+import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../api/core/config/Repository';
+import { type ISocketServer } from '../../api/core/communication/SocketServer';
+import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
+import { Client } from './Client';
+import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';
+import { LogLevel } from '../logging/LogLevel';
 
 export class SocketServer implements ISocketServer {
     private server?: Server<Client>;

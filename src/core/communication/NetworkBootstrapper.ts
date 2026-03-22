@@ -1,12 +1,12 @@
-import { Bootstrapper } from '../bootstrap/Bootstrapper.js';
-import { type ISocketServer, SOCKET_SERVER_TOKEN } from '../../api/core/communication/SocketServer.js';
-import { SocketServer } from './SocketServer.js';
-import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler.js';
-import { SocketMessageHandler } from './messages/SocketMessageHandler.js';
-import { EventAndResponsesBootstrapper } from './EventAndResponsesBootstrapper.js';
-import { Codec } from './Codec.js';
-import { CODEC_TOKEN, type ICodec } from '../../api/core/communication/Codec.js';
-import { Class } from '../support/types/Class';
+import { Bootstrapper } from '../bootstrap/Bootstrapper';
+import { type ISocketServer, SOCKET_SERVER_TOKEN } from '../../api/core/communication/SocketServer';
+import { SocketServer } from './SocketServer';
+import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';
+import { SocketMessageHandler } from './messages/SocketMessageHandler';
+import { EventAndResponsesBootstrapper } from './EventAndResponsesBootstrapper';
+import { Codec } from './Codec';
+import { CODEC_TOKEN, type ICodec } from '../../api/core/communication/Codec';
+import { type Class } from '../support/types/Class';
 
 export class NetworkBootstrapper extends Bootstrapper {
     public async registerBindings(): Promise<void> {

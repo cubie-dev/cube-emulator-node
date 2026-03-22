@@ -1,23 +1,23 @@
-import type { ISocketMessageHandler } from '../../../api/core/communication/MessageHandler.js';
-import { Client } from '../Client.js';
+import { type ISocketMessageHandler } from '../../../api/core/communication/MessageHandler';
+import { Client } from '../Client';
 import { inject } from 'inversify';
 import {
     EVENT_HANDLER_REGISTRY_TOKEN,
     type IEventHandlerRegistry
-} from '../../../api/core/communication/IncomingMessageHandlerRegistry.js';
-import { EMULATOR_TOKEN, type IEmulator } from '../../../api/core/Emulator.js';
-import { type ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger.js';
-import { Response } from './responses/Response.js';
-import { EventContext } from './events/EventContext.js';
-import { CODEC_TOKEN, type ICodec } from '../../../api/core/communication/Codec.js';
-import { LogLevel } from '../../logging/LogLevel.js';
-import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../../api/core/config/Repository.js';
-import { Pipeline } from '../../support/pipeline/Pipeline.js';
-import { EventHandler } from './events/EventHandler.js';
-import { EventLoggerPipe } from '../pipes/EventLoggerPipe.js';
-import { FlushPipe } from '../pipes/FlushPipe.js';
-import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../../api/core/database/DatabaseManager.js';
-import { Class } from '../../support/types/Class';
+} from '../../../api/core/communication/EventHandlerRegistry';
+import { EMULATOR_TOKEN, type IEmulator } from '../../../api/core/Emulator';
+import { type ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger';
+import { Response } from './responses/Response';
+import { EventContext } from './events/EventContext';
+import { CODEC_TOKEN, type ICodec } from '../../../api/core/communication/Codec';
+import { LogLevel } from '../../logging/LogLevel';
+import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../../api/core/config/Repository';
+import { Pipeline } from '../../support/pipeline/Pipeline';
+import { EventHandler } from './events/EventHandler';
+import { EventLoggerPipe } from '../pipes/EventLoggerPipe';
+import { FlushPipe } from '../pipes/FlushPipe';
+import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../../api/core/database/DatabaseManager';
+import { type Class } from '../../support/types/Class';
 
 export class SocketMessageHandler implements ISocketMessageHandler {
     public constructor(

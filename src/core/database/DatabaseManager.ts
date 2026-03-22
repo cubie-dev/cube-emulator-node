@@ -1,4 +1,4 @@
-import type { IDatabaseManager } from '../../api/core/database/DatabaseManager';
+import { type IDatabaseManager } from '../../api/core/database/DatabaseManager';
 import { EntityManager, MikroORM } from '@mikro-orm/postgresql';
 import { inject } from 'inversify';
 import { EMULATOR_TOKEN, type IEmulator } from '../../api/core/Emulator';

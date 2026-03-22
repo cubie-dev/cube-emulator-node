@@ -1,9 +1,9 @@
-import { Destination, PipeClass } from '../../support/pipeline/Pipeline.js';
-import { Response } from '../messages/responses/Response.js';
+import { Destination, PipeClass } from '../../support/pipeline/Pipeline';
+import { Response } from '../messages/responses/Response';
 import { inject } from 'inversify';
-import { type ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger.js';
-import { LogLevel } from '../../logging/LogLevel.js';
-import { EventContext } from '../messages/events/EventContext.js';
+import { type ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger';
+import { LogLevel } from '../../logging/LogLevel';
+import { EventContext } from '../messages/events/EventContext';
 
 export class EventLoggerPipe implements PipeClass<EventContext, Response> {
     public constructor(

@@ -1,5 +1,5 @@
-import type { IEmulator } from '../../api/core/Emulator.js';
-import { Class } from '../support/types/Class';
+import { type IEmulator } from '../../api/core/Emulator';
+import { type Class } from '../support/types/Class';
 
 export class Bootstrapper {
     public constructor(

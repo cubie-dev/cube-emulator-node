@@ -5,7 +5,7 @@ import { PongEventHandler } from './handlers/PongEventHandler';
 import { SsoEventHandler } from './handlers/handshake/SsoEventHandler';
 import { NavigationInitEvent } from './handlers/navigation/NavigationInitEvent';
 import { NavigatorSearchEvent } from './handlers/navigation/NavigatorSearchEvent';
-import { Class } from '../../../support/types/Class';
+import { type Class } from '../../../support/types/Class';
 
 const eventHandlerMap = new Map<number, Class<EventHandler>>();
 

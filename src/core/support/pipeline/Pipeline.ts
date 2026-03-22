@@ -1,6 +1,6 @@
 import { Container } from 'inversify';
 import { isClass } from '../helpers/isClass';
-import { Class } from '../types/Class';
+import { type Class } from '../types/Class';
 
 export type Destination<T, R> = (event: T) => Promise<R | R[] | null>;
 export type PipeFunction<T, R> = (event: T, next: Destination<T, R>) => Promise<R | R[] | null>;

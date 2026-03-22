@@ -1,4 +1,4 @@
-import { Client } from '../../../core/communication/Client.js';
+import { Client } from '../../../core/communication/Client';
 
 export interface ISocketMessageHandler {
     handle(client: Client, data: Buffer): void;

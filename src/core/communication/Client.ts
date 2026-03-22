@@ -1,5 +1,5 @@
 import { ServerWebSocket } from 'bun';
-import { User } from '../database/entities/User.js';
+import { User } from '../database/entities/User';
 
 export class Client {
     private _user: User;

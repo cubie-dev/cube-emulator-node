@@ -14,10 +14,10 @@ const roomSchema = defineEntity({
         name: p.text(),
         owner: p.manyToOne(User)
             .fieldName('owner_id')
-            .owner(),
+            .nullable(),
+        hasAd: p.boolean(),
         category: () => p.manyToOne(NavigatorCategory)
-            .fieldName('category_id')
-            .owner(),
+            .fieldName('category_id'),
     }
 })
 

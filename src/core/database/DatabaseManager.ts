@@ -26,7 +26,7 @@ export class DatabaseManager implements IDatabaseManager {
             port: this.config.get<number>('database.port'),
             user: this.config.get<string>('database.username'),
             password: this.config.get<string>('database.password'),
-            debug: this.config.get<boolean>('debug') === true,
+            debug: this.config.get<boolean>('debug'),
         });
     }
 

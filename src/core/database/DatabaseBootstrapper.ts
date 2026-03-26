@@ -3,14 +3,14 @@ import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../api/core/da
 import { DatabaseManager } from './DatabaseManager';
 
 export class DatabaseBootstrapper extends Bootstrapper {
-    public async registerBindings(): Promise<void> {
+    public override async registerBindings(): Promise<void> {
         this.emulator.rootContainer
             .bind<IDatabaseManager>(DATABASE_MANAGER_TOKEN)
             .to(DatabaseManager)
             .inSingletonScope();
     }
 
-    public async boot(): Promise<void> {
+    public override async boot(): Promise<void> {
        const dbManager = this.emulator.rootContainer
             .get<IDatabaseManager>(DATABASE_MANAGER_TOKEN);
 

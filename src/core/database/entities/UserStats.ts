@@ -12,9 +12,7 @@ const userStatsSchema = defineEntity({
         respectReceived: p.integer()
             .fieldName('respect_received'),
         user: () => p.oneToOne(User)
-            .inversedBy((user) => user.stats)
-            .fieldName('user_id')
-            .owner(),
+            .fieldName('user_id'),
     }
 });
 

@@ -14,3 +14,6 @@ bunx *args:
 
 typecheck:
     {{docker-compose-api-run}} --rm emulator bunx tsc --noEmit
+
+database-migrate-up:
+    {{docker-compose-api-run}} --rm emulator bunx mikro-orm migration:up

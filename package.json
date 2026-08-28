@@ -13,7 +13,9 @@
     "license": "ISC",
     "dependencies": {
         "@inversifyjs/binding-decorators": "^3.0.0",
+        "@mikro-orm/cli": "^7.1.14",
         "@mikro-orm/core": "^7.1.14",
+        "@mikro-orm/migrations": "^7.1.14",
         "@mikro-orm/postgresql": "^7.1.14",
         "inversify": "^8.2.3",
         "winston": "^3.19.0"

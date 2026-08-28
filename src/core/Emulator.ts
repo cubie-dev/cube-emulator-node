@@ -20,7 +20,7 @@ export class Emulator implements IEmulator {
         });
 
         this.rootContainer.bind(EMULATOR_TOKEN).toConstantValue(this)
-        void this.rootContainer.load(buildProviderModule());
+        this.rootContainer.load(buildProviderModule());
     }
 
     public static async create(rootDirectory: string): Promise<EmulatorBootstrapper> {

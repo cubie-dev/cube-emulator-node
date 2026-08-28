@@ -1,3 +1,5 @@
+import { type Encoding } from 'bun';
+
 export class BinaryWriter
 {
     private buffer: Uint8Array;
@@ -90,7 +92,7 @@ export class BinaryWriter
         return <ArrayBuffer>this.buffer.buffer;
     }
 
-    public toString(encoding?: string): string
+    public toString(encoding?: Encoding): string
     {
         return new TextDecoder(encoding).decode(this.buffer);
     }

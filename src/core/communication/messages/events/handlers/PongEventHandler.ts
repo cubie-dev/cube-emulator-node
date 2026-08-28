@@ -6,7 +6,7 @@ import { EventContext } from '../EventContext';
  */
 export class PongEventHandler extends EventHandler {
     public handle(context: EventContext): null {
-        context.client.lastPongTimestamp = Date.now();
+        context.client.lastPong = Date.now();
 
         return null;
     }

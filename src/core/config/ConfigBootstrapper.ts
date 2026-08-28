@@ -5,14 +5,14 @@ import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
 import { LogLevel } from '../logging/LogLevel';
 
 export class ConfigBootstrapper extends Bootstrapper {
-    public async registerBindings(): Promise<void> {
+    public override async registerBindings(): Promise<void> {
         this.emulator.rootContainer
             .bind<IRepository>(CONFIG_REPOSITORY_TOKEN)
             .to(Repository)
             .inSingletonScope();
     }
 
-    public async boot(): Promise<void> {
+    public override async boot(): Promise<void> {
         await this.emulator.rootContainer
             .get<IRepository>(CONFIG_REPOSITORY_TOKEN)
             .loadConfig();

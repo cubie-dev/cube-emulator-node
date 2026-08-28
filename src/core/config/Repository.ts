@@ -3,7 +3,7 @@ import { inject } from 'inversify';
 import { readFile } from 'node:fs/promises';
 import { EMULATOR_TOKEN, type IEmulator } from '../../api/core/Emulator';
 import { join as joinPaths } from 'node:path';
-import { get } from 'lodash-es';
+import { get } from '../support/helpers/get';
 
 export class Repository implements IRepository {
     private config?: any;

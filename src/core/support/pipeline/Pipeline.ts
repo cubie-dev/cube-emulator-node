@@ -9,7 +9,7 @@ export interface PipeClass<T, R> {
 }
 
 export class Pipeline<T, R> {
-    private payload: T;
+    private payload!: T;
     private pipes: Array<PipeFunction<T, R>|Class<PipeClass<T, R>>> = [];
 
     public constructor(
@@ -32,7 +32,7 @@ export class Pipeline<T, R> {
         const pipeline = this.pipes
             .reverse()
             .reduce<Destination<T, R>>(
-                (initial: Destination<T, R>, pipe: PipeFunction<T, R>) => {
+                (initial: Destination<T, R>, pipe: PipeFunction<T, R>|Class<PipeClass<T, R>>) => {
                     return (event: T) => {
                         if (isClass(pipe)) {
                             return this.container

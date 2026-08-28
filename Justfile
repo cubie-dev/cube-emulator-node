@@ -7,7 +7,10 @@ bun *args:
     {{docker-compose-api-run}} --rm emulator bun {{args}}
 
 logs:
-    docker logs $(docker ps -aqf "name=cube-emulator-node-emulator-run-.*") -f
+    docker logs $(docker ps -aqf "name=cube-emulator-node-emulator-.*") -f
 
 bunx *args:
     {{docker-compose-api-run}} --rm emulator bunx {{args}}
+
+typecheck:
+    {{docker-compose-api-run}} --rm emulator bunx tsc --noEmit

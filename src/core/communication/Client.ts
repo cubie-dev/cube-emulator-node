@@ -1,8 +1,8 @@
-import { ServerWebSocket } from 'bun';
+import { type ServerWebSocket } from 'bun';
 import { User } from '../database/entities/User';
 
 export class Client {
-    private _user: User;
+    private _user?: User;
     private _lastPong?: number;
 
     public constructor(
@@ -13,6 +13,10 @@ export class Client {
     public send(buffer: ArrayBuffer, errorCallback: (err?: Error) => void): void {
         const result = this.socket.send(buffer);
         errorCallback(result < 0 ? new Error('WebSocket send failed') : undefined);
+    }
+
+    public get user(): User | undefined {
+        return this._user;
     }
 
     public set user(user: User) {

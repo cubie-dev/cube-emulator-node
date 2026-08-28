@@ -86,7 +86,7 @@ export class SocketMessageHandler implements ISocketMessageHandler {
         for (const response of responses) {
             const arrayBuffer = this.codec.encode(response);
 
-            context.client.send(arrayBuffer, (err: Error): void => {
+            context.client.send(arrayBuffer, (err?: Error): void => {
                 if (!err) {
                     return;
                 }

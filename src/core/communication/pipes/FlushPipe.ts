@@ -1,4 +1,4 @@
-import { Destination, PipeClass } from '../../support/pipeline/Pipeline';
+import { type Destination, type PipeClass } from '../../support/pipeline/Pipeline';
 import { Response } from '../messages/responses/Response';
 import { EventContext } from '../messages/events/EventContext';
 

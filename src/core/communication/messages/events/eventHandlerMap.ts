@@ -11,7 +11,7 @@ const eventHandlerMap = new Map<number, Class<EventHandler>>();
 
 eventHandlerMap.set(EventHeader.RELEASE_VERSION, ReleaseVersionEventHandler);
 eventHandlerMap.set(EventHeader.CLIENT_PONG, PongEventHandler);
-eventHandlerMap.set(EventHeader.SSO, SsoEventHandler);
+eventHandlerMap.set(EventHeader.SECURITY_TICKET, SsoEventHandler);
 
 // navigation
 eventHandlerMap.set(EventHeader.NAVIGATOR_SEARCH, NavigatorSearchEvent);

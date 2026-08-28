@@ -11,3 +11,6 @@ logs:
 
 bunx *args:
     {{docker-compose-api-run}} --rm emulator bunx {{args}}
+
+typecheck:
+    {{docker-compose-api-run}} --rm emulator bunx tsc --noEmit

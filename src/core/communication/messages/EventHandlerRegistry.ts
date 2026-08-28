@@ -5,7 +5,7 @@ import { type Class } from '../../support/types/Class';
 export class EventHandlerRegistry implements IEventHandlerRegistry {
     private handlers: Map<number, Class<EventHandler>> = new Map();
 
-    public getByHeader(header: number): Class<EventHandler> {
+    public getByHeader(header: number): Class<EventHandler> | undefined {
         return this.handlers.get(header);
     }
 

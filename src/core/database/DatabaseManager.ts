@@ -9,7 +9,7 @@ import { NavigatorCategory } from './entities/NavigatorCategory';
 import { Room } from './entities/Room';
 
 export class DatabaseManager implements IDatabaseManager {
-    private orm: MikroORM;
+    private orm!: MikroORM;
 
     public constructor(
         @inject(EMULATOR_TOKEN) private emulator: IEmulator,

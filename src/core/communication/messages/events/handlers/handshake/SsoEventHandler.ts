@@ -1,4 +1,4 @@
-import { Response } from 'core/communication/messages/responses/Response';
+import { Response } from '../../../responses/Response';
 import { EventContext } from '../../EventContext';
 import { EventHandler } from '../../EventHandler';
 import { User } from '../../../../../database/entities/User';
@@ -28,6 +28,8 @@ export class SsoEventHandler extends EventHandler {
 
         if (!user) {
             this.socketServer.disposeClient(context.client);
+
+            return [];
         }
 
         // user.authToken = null;

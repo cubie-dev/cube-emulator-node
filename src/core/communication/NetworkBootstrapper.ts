@@ -9,7 +9,7 @@ import { CODEC_TOKEN, type ICodec } from '../../api/core/communication/Codec';
 import { type Class } from '../support/types/Class';
 
 export class NetworkBootstrapper extends Bootstrapper {
-    public async registerBindings(): Promise<void> {
+    public override async registerBindings(): Promise<void> {
 
         this.emulator.rootContainer
             .bind<ISocketServer>(SOCKET_SERVER_TOKEN)
@@ -25,14 +25,14 @@ export class NetworkBootstrapper extends Bootstrapper {
             .to(Codec);
     }
 
-    public async stop(): Promise<void> {
+    public override async stop(): Promise<void> {
         const socketServer = this.emulator.rootContainer
             .get<ISocketServer>(SOCKET_SERVER_TOKEN);
 
         socketServer.stop();
     }
 
-    public bootstraps(): Class<Bootstrapper>[] {
+    public override bootstraps(): Class<Bootstrapper>[] {
         return [
             EventAndResponsesBootstrapper
         ];

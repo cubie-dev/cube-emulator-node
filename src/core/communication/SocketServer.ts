@@ -1,5 +1,5 @@
 import { inject } from 'inversify';
-import { Server, ServerWebSocket } from 'bun';
+import { type Server, type ServerWebSocket } from 'bun';
 import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../api/core/config/Repository';
 import { type ISocketServer } from '../../api/core/communication/SocketServer';
 import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
@@ -26,7 +26,9 @@ export class SocketServer implements ISocketServer {
             port,
             hostname,
             fetch: (req: Request, server: Server<Client>) => {
-                if (server.upgrade(req, { data: null })) {
+                // The Client needs the ServerWebSocket handle, which only exists once
+                // the socket is open, so `open` assigns the real instance to ws.data.
+                if (server.upgrade(req, { data: null as unknown as Client })) {
                     return
                 }
 

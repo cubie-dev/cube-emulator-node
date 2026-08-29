@@ -1,13 +1,28 @@
 import { Emulator } from './core/Emulator';
+import { hotState, reloadEventHandlers } from './core/bootstrap/HotReload';
 
-const emulator = await Emulator.create(import.meta.dir);
+const state = hotState();
 
-process.on("SIGINT", () => {
-    process.exit();
-});
+if (state.emulator) {
+    // `bun --hot` re-evaluated this graph while the emulator from the first boot kept
+    // running, so the clients stay connected and only the handlers are swapped out.
+    reloadEventHandlers(state.emulator);
+} else {
+    const bootstrapper = await Emulator.create(import.meta.dir);
 
-process.on('exit', () => {
-    emulator.stop().catch(console.error);
-})
+    process.on("SIGINT", () => {
+        process.exit();
+    });
 
-emulator.start().catch(console.error);
+    process.on('exit', () => {
+        bootstrapper.stop().catch(console.error);
+    })
+
+    try {
+        await bootstrapper.start();
+
+        state.emulator = bootstrapper.emulator;
+    } catch (e: unknown) {
+        console.error(e);
+    }
+}

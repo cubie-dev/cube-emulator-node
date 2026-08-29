@@ -18,6 +18,7 @@ import { EventLoggerPipe } from '../pipes/EventLoggerPipe';
 import { FlushPipe } from '../pipes/FlushPipe';
 import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../../api/core/database/DatabaseManager';
 import { type Class } from '../../support/types/Class';
+import { UnknownHandlerError } from './UnknownHandlerError.ts';
 
 export class SocketMessageHandler implements ISocketMessageHandler {
     public constructor(
@@ -63,7 +64,7 @@ export class SocketMessageHandler implements ISocketMessageHandler {
                     const handler = this.handlerRegistry.getByHeader(context.event.header);
 
                     if (!handler) {
-                        throw new Error(`No handler found for header: ${event.header}`);
+                        throw new UnknownHandlerError();
                     }
 
                     return this.dispatchHandler(context, handler);
@@ -75,8 +76,9 @@ export class SocketMessageHandler implements ISocketMessageHandler {
 
             void this.flushAndRespond(eventContext, response);
         } catch (e: unknown) {
-            this.logger.log('Network', LogLevel.ERROR, `Error while handling: ${event.header}`);
-            console.error(e);
+            if (e instanceof Error) {
+                this.logger.log('Network', LogLevel.ERROR, `Error while handling ${event.header}: ${e.message}`);
+            }
         }
     }
 

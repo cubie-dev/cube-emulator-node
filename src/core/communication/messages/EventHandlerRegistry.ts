@@ -10,8 +10,6 @@ export class EventHandlerRegistry implements IEventHandlerRegistry {
     }
 
     public overwriteHandlers(handlers: Map<number, Class<EventHandler>>) {
-        handlers.forEach((value: Class<EventHandler>, key: number) => {
-            this.handlers.set(key, value);
-        });
+        this.handlers = new Map(handlers);
     }
 }

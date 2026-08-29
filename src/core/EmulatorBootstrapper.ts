@@ -6,6 +6,8 @@ import { NetworkBootstrapper } from './communication/NetworkBootstrapper';
 import { LoggingBootstrapper } from './logging/LoggingBootstrapper';
 import { DatabaseBootstrapper } from './database/DatabaseBootstrapper';
 import { type Class } from './support/types/Class';
+import { type ILogger, LOGGER_TOKEN } from '../api/core/logger/Logger.ts';
+import { LogLevel } from './logging/LogLevel.ts';
 
 export class EmulatorBootstrapper {
     /**
@@ -23,7 +25,7 @@ export class EmulatorBootstrapper {
     private bootstrappedBootstrappers: Bootstrapper[] = [];
 
     public constructor(
-        private emulator: IEmulator
+        public readonly emulator: IEmulator
     ) {
     }
 

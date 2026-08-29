@@ -1,3 +1,4 @@
 node_modules
 emulator.logs
 src/migrations
+.idea

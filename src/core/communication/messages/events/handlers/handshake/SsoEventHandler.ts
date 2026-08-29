@@ -38,7 +38,6 @@ export class SsoEventHandler extends EventHandler {
 
         return [
             new AuthenticatedResponse(),
-            new LoadGameUrlResponse(GameType.HOTEL),
             new UserInfoResponse(user),
             new FigureUpdateResponse(user),
         ];

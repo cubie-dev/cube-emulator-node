@@ -2,6 +2,7 @@ import { defineEntity } from '@mikro-orm/core';
 import { RoomRepository } from '../repositories/RoomRepository';
 import { NavigatorCategory } from './NavigatorCategory';
 import { User } from './User';
+import { TradeType } from '../enums/TradeType';
 import { p } from '@mikro-orm/postgresql';
 
 const roomSchema = defineEntity({
@@ -29,6 +30,8 @@ const roomSchema = defineEntity({
         adDescription: p.text().fieldName('ad_description').nullable(),
         adExpiresAt: p.datetime().fieldName('ad_expires_at').nullable(),
         tags: p.text().nullable(),
+        model: p.text().default('model_a'),
+        tradeType: p.enum(TradeType).fieldName('trade_type').default(TradeType.NOT_ALLOWED),
     }
 })
 

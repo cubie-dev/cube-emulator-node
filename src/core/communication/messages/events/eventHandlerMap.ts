@@ -5,6 +5,7 @@ import { PongEventHandler } from './handlers/PongEventHandler';
 import { SsoEventHandler } from './handlers/handshake/SsoEventHandler';
 import { NavigationInitEvent } from './handlers/navigation/NavigationInitEvent';
 import { NavigatorSearchEvent } from './handlers/navigation/NavigatorSearchEvent';
+import { RoomCreateEvent } from './handlers/navigation/RoomCreateEvent';
 import { type Class } from '../../../support/types/Class';
 
 const eventHandlerMap = new Map<number, Class<EventHandler>>();
@@ -16,6 +17,7 @@ eventHandlerMap.set(EventHeader.SECURITY_TICKET, SsoEventHandler);
 // navigation
 eventHandlerMap.set(EventHeader.NAVIGATOR_SEARCH, NavigatorSearchEvent);
 eventHandlerMap.set(EventHeader.NAVIGATOR_INIT, NavigationInitEvent);
+eventHandlerMap.set(EventHeader.ROOM_CREATE, RoomCreateEvent);
 
 export {
     eventHandlerMap

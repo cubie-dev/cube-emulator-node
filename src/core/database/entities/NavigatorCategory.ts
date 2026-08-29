@@ -11,6 +11,11 @@ const navigatorCategorySchema = defineEntity({
             .fieldName('id'),
         name: p.text()
             .fieldName('name'),
+        visible: p.boolean().default(true),
+        automatic: p.boolean().default(false),
+        automaticCategoryKey: p.text().fieldName('automatic_category_key').default(''),
+        globalCategoryKey: p.text().fieldName('global_category_key').default(''),
+        staffOnly: p.boolean().fieldName('staff_only').default(false),
         rooms: () => p.oneToMany(Room)
             .mappedBy(room => room.category),
     }

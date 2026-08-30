@@ -8,8 +8,6 @@ services:
     ports:
       - "3333:3333"
     tty: true
-    labels:
-      - dev.orbstack.http-port=3333
     depends_on:
       - db
 

@@ -1,7 +1,7 @@
 import { ConfigBootstrapper } from './config/ConfigBootstrapper';
 import { type IEmulator } from '../api/core/Emulator';
 import { Bootstrapper } from './bootstrap/Bootstrapper';
-import { type ISocketServer, SOCKET_SERVER_TOKEN } from '../api/core/communication/SocketServer';
+import { type IGameServer, GAME_SERVER_TOKEN } from '../api/core/communication/SocketServer';
 import { NetworkBootstrapper } from './communication/NetworkBootstrapper';
 import { LoggingBootstrapper } from './logging/LoggingBootstrapper';
 import { DatabaseBootstrapper } from './database/DatabaseBootstrapper';
@@ -72,7 +72,7 @@ export class EmulatorBootstrapper {
         await this.bootBootstrappers();
 
         this.emulator.rootContainer
-            .get<ISocketServer>(SOCKET_SERVER_TOKEN)
+            .get<IGameServer>(GAME_SERVER_TOKEN)
             .start();
     }
 

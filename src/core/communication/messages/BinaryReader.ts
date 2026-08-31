@@ -76,6 +76,51 @@ export class BinaryReader {
         return this.dataView.byteLength - this.position;
     }
 
+    public inspect(): string
+    {
+        const bytes = Buffer.from(this.dataView.buffer.slice(this.position));
+        if (bytes.length === 0) return '(empty)';
+
+        const parts: string[] = [];
+        let i = 0;
+
+        while (i < bytes.length) {
+            const rem = bytes.length - i;
+
+            // Try string: 2-byte big-endian length prefix + UTF-8 content
+            if (rem >= 2) {
+                const strLen = bytes.readInt16BE(i);
+                if (strLen >= 0 && strLen <= rem - 2) {
+                    const strBytes = bytes.slice(i + 2, i + 2 + strLen);
+                    if (strLen === 0 || isProbablyText(strBytes)) {
+                        parts.push(`string(${JSON.stringify(strBytes.toString('utf-8'))})`);
+                        i += 2 + strLen;
+                        continue;
+                    }
+                }
+            }
+
+            // Try int: 4 bytes
+            if (rem >= 4) {
+                parts.push(`int(${bytes.readInt32BE(i)})`);
+                i += 4;
+                continue;
+            }
+
+            // Try short: 2 bytes
+            if (rem >= 2) {
+                parts.push(`short(${bytes.readInt16BE(i)})`);
+                i += 2;
+                continue;
+            }
+
+            parts.push(`byte(${bytes[i]})`);
+            i += 1;
+        }
+
+        return parts.join(', ');
+    }
+
     public toString(encoding?: string): string
     {
         return new TextDecoder().decode(this.dataView.buffer);
@@ -85,4 +130,12 @@ export class BinaryReader {
     {
         return this.dataView.buffer;
     }
+}
+
+function isProbablyText(bytes: Buffer): boolean {
+    let printable = 0;
+    for (const b of bytes) {
+        if ((b >= 32 && b <= 126) || b > 127) printable++;
+    }
+    return printable / bytes.length >= 0.8;
 }

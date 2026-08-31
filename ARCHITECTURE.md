@@ -4,7 +4,7 @@
 
 Use them together. When you implement a feature server-side, find the flow here to learn the sequence, then look each packet up in `EVENTS.MD` for the exact bytes.
 
-Opcodes are quoted inline as `→ 1234` (client → server, you parse it) and `← 1234` (server → client, you compose it).
+Opcodes are quoted inline as `incoming 1234` (client incoming server, you parse it) and `outgoing 1234` (server incoming client, you compose it).
 
 ---
 
@@ -104,7 +104,7 @@ useMessageEvent<CatalogPageMessageEvent>(CatalogPageMessageEvent, event =>
 
 `useMessageEvent` (`src/hooks/events/useMessageEvent.tsx`) registers the event on mount and removes it on unmount. The class you pass is both the type and the value — it constructs `new eventType(handler)` internally.
 
-Each incoming class pairs with a parser: `CatalogPageMessageEvent` → `CatalogPageMessageParser`. The parser's `parse()` body **is** the wire format. `event.getParser()` returns it, and you read typed getters off it. Part 2 of `EVENTS.MD` prints each `parse()` body verbatim.
+Each incoming class pairs with a parser: `CatalogPageMessageEvent` incoming `CatalogPageMessageParser`. The parser's `parse()` body **is** the wire format. `event.getParser()` returns it, and you read typed getters off it. Part 2 of `EVENTS.MD` prints each `parse()` body verbatim.
 
 The handler identity matters — `useMessageEvent` re-registers whenever `handler` changes. Handlers defined inline in a component body are re-created every render, which is fine because the hook cleans up, but it means you should not rely on registration being stable.
 
@@ -142,43 +142,43 @@ The client opens the socket and immediately, without waiting for anything:
 
 ```
 socket opens
-  → 4000  RELEASE_VERSION    ClientHelloMessageComposer
-  → 882   SECURITY_TICKET    SSOTicketMessageComposer(ticket, time)
+  incoming 4000  RELEASE_VERSION    ClientHelloMessageComposer
+  incoming 882   SECURITY_TICKET    SSOTicketMessageComposer(ticket, time)
 ```
 
 Then it waits. The **only** thing it is waiting for is:
 
 ```
-  ← 230   AUTHENTICATED      AuthenticationOKMessageEvent   (no payload — header only)
+  outgoing 230   AUTHENTICATED      AuthenticationOKMessageEvent   (no payload — header only)
 ```
 
 On receiving `230` the client considers itself logged in, dispatches `CONNECTION_AUTHENTICATED` internally, and immediately asks for the user:
 
 ```
-  → 756   USER_INFO          InfoRetrieveMessageComposer    (no payload)
+  incoming 756   USER_INFO          InfoRetrieveMessageComposer    (no payload)
 ```
 
 So the minimum viable server handshake is: **accept `882`, validate the ticket, reply `230`, then answer the `756` that follows.**
 
 | Packet | Payload |
 |---|---|
-| `→ 4000` `ClientHelloMessageComposer` | `string releaseVersion`, `string type`, `int32 platform`, `int32 deviceCategory` |
-| `→ 882` `SSOTicketMessageComposer` | `string ticket`, `int32 time` |
-| `→ 756` `InfoRetrieveMessageComposer` | none |
-| `← 230` `AuthenticationOKMessageEvent` | none |
+| `incoming 4000` `ClientHelloMessageComposer` | `string releaseVersion`, `string type`, `int32 platform`, `int32 deviceCategory` |
+| `incoming 882` `SSOTicketMessageComposer` | `string ticket`, `int32 time` |
+| `incoming 756` `InfoRetrieveMessageComposer` | none |
+| `outgoing 230` `AuthenticationOKMessageEvent` | none |
 
 Notes that will save you time:
 
 - `ClientHelloMessageComposer` **ignores its constructor arguments** and hardcodes the payload: `"NITRO-<version>"`, `"HTML5"`, `2` (`ClientPlatformEnum.HTML5`), `1` (`ClientDeviceCategoryEnum.BROWSER`). Passing values in has no effect. The call site is literally `new ClientHelloMessageComposer(null, null, null, null)`.
-- There is no client-side timeout on `230`. If you never send it, the client sits on a blank screen with no error. Send `← 4000 DISCONNECT_REASON` instead of hanging.
+- There is no client-side timeout on `230`. If you never send it, the client sits on a blank screen with no error. Send `outgoing 4000 DISCONNECT_REASON` instead of hanging.
 - Login **requires** an SSO ticket. Without `sso.ticket` in config the client logs `Login without an SSO ticket is not supported`, dispatches `CONNECTION_HANDSHAKE_FAILED`, and never sends `882`.
 - The `time` field of `882` is `GetTickerTime()` — the renderer's ticker, not a wall clock. Do not validate it as a timestamp.
 
 ### 1.2 Keepalive
 
 ```
-  ← 1407  CLIENT_PING        PingMessageEvent          (no payload)
-  → 362   CLIENT_PONG        PongMessageComposer       (no payload)
+  outgoing 1407  CLIENT_PING        PingMessageEvent          (no payload)
+  incoming 362   CLIENT_PONG        PongMessageComposer       (no payload)
 ```
 
 The client answers every `1407` with a `362`. Optionally, if `system.pong.manually` is configured true, it also sends `362` unprompted every `system.pong.interval.ms` (default 20000). Either mechanism holds the connection open.
@@ -188,9 +188,9 @@ The client answers every `1407` with a `362`. Optionally, if `system.pong.manual
 Live, and separate from the ping/pong keepalive. Driven by `LatencyTracker`, started from `Nitro.init()` and running every 20s:
 
 ```
-  → 544   CLIENT_LATENCY          LatencyPingRequestMessageComposer(requestId)
-  ← 188   CLIENT_LATENCY          LatencyPingResponseMessageEvent(requestId)
-  → 1744  CLIENT_LATENCY_MEASURE  LatencyPingReportMessageComposer(avgMs, avgFilteredMs, sampleCount)
+  incoming 544   CLIENT_LATENCY          LatencyPingRequestMessageComposer(requestId)
+  outgoing 188   CLIENT_LATENCY          LatencyPingResponseMessageEvent(requestId)
+  incoming 1744  CLIENT_LATENCY_MEASURE  LatencyPingReportMessageComposer(avgMs, avgFilteredMs, sampleCount)
 ```
 
 **Echo the `requestId` from `544` back in `188` unchanged** — the tracker matches responses to pending requests by that id and silently discards anything it did not ask for.
@@ -202,15 +202,15 @@ The report (`1744`) is not sent every cycle. The tracker discards one warm-up sa
 `AvailabilityStatusMessageEvent` is consumed by `SessionDataManager`; the other four surface as UI notifications via `useNotification`. All are server-initiated — there is no request half.
 
 ```
-  ← 1350  AVAILABILITY_STATUS         AvailabilityStatusMessageEvent
+  outgoing 1350  AVAILABILITY_STATUS         AvailabilityStatusMessageEvent
               boolean isOpen, boolean onShutdown, [optional] boolean isAuthenticUser
-  ← 3058  HOTEL_CLOSES_AND_OPENS_AT   InfoHotelClosedMessageEvent
+  outgoing 3058  HOTEL_CLOSES_AND_OPENS_AT   InfoHotelClosedMessageEvent
               int32 openHour, int32 openMinute, boolean userThrownOutAtClose
-  ← 184   HOTEL_WILL_CLOSE_MINUTES    InfoHotelClosingMessageEvent
+  outgoing 184   HOTEL_WILL_CLOSE_MINUTES    InfoHotelClosingMessageEvent
               int32 minutes
-  ← 698   HOTEL_CLOSED_AND_OPENS      LoginFailedHotelClosedMessageEvent
+  outgoing 698   HOTEL_CLOSED_AND_OPENS      LoginFailedHotelClosedMessageEvent
               int32 openHour, int32 openMinute
-  ← 1737  HOTEL_MAINTENANCE           MaintenanceStatusMessageEvent
+  outgoing 1737  HOTEL_MAINTENANCE           MaintenanceStatusMessageEvent
               boolean isInMaintenance, int32 minutesUntilMaintenance, int32 duration
 ```
 
@@ -218,12 +218,12 @@ The report (`1744`) is not sent every cycle. The tracker discards one warm-up sa
 
 Use `698` when refusing a login because the hotel is shut; use `3058` for an already-connected client. Both take an open time, not a duration.
 
-⚠️ `← AvailabilityTimeMessageEvent` (`AVAILABILITY_TIME`, `int32 minutesUntilChange`) holds the **placeholder opcode `-1`** and nothing listens to it. It cannot be sent.
+⚠️ `outgoing AvailabilityTimeMessageEvent` (`AVAILABILITY_TIME`, `int32 minutesUntilChange`) holds the **placeholder opcode `-1`** and nothing listens to it. It cannot be sent.
 
 ### 1.5 Noobness
 
 ```
-  ← 70    NOOBNESS_LEVEL     NoobnessLevelMessageEvent    (int32 noobnessLevel)
+  outgoing 70    NOOBNESS_LEVEL     NoobnessLevelMessageEvent    (int32 noobnessLevel)
 ```
 
 Read by `SessionDataManager` into `noobnessLevel` and used to gate new-user hand-holding. Send it after `230` if you want the NUX behaviour; omitting it leaves the level at its default.
@@ -234,22 +234,22 @@ These are in the protocol and registered in `NitroMessages.ts`, but **no code pa
 
 | Packet | Payload | Status |
 |---|---|---|
-| `→ -1` `AuthenticationMessageComposer` | dynamic key/value pairs | ⚠️ placeholder opcode — unsendable |
-| `→ 2022` `InitDiffieHandshakeMessageComposer` | none | never sent |
-| `← 3309` `InitDiffieHandshakeEvent` | `string encryptedPrime`, `string encryptedGenerator` | no listener |
-| `→ 2526` `CompleteDiffieHandshakeMessageComposer` | `string publicKey` | never sent |
-| `← 3401` `CompleteDiffieHandshakeEvent` | `string encryptedPublicKey`, `boolean serverClientEncryption` | no listener |
-| `→ 2309` `UniqueIDMessageComposer` | `string machineId`, `string fingerprint`, `string flashVersion` | never sent |
-| `→ 3584` `VersionCheckMessageComposer` | `int32 clientID`, `string clientURL`, `string externalVariablesURL` | never sent |
-| `→ 2864` `DisconnectMessageComposer` | none | never sent |
-| `← 1343` `IdentityAccountsEvent` | counted map of account ids → names | no listener |
+| `incoming -1` `AuthenticationMessageComposer` | dynamic key/value pairs | ⚠️ placeholder opcode — unsendable |
+| `incoming 2022` `InitDiffieHandshakeMessageComposer` | none | never sent |
+| `outgoing 3309` `InitDiffieHandshakeEvent` | `string encryptedPrime`, `string encryptedGenerator` | no listener |
+| `incoming 2526` `CompleteDiffieHandshakeMessageComposer` | `string publicKey` | never sent |
+| `outgoing 3401` `CompleteDiffieHandshakeEvent` | `string encryptedPublicKey`, `boolean serverClientEncryption` | no listener |
+| `incoming 2309` `UniqueIDMessageComposer` | `string machineId`, `string fingerprint`, `string flashVersion` | never sent |
+| `incoming 3584` `VersionCheckMessageComposer` | `int32 clientID`, `string clientURL`, `string externalVariablesURL` | never sent |
+| `incoming 2864` `DisconnectMessageComposer` | none | never sent |
+| `outgoing 1343` `IdentityAccountsEvent` | counted map of account ids incoming names | no listener |
 
 The **Diffie-Hellman handshake is entirely dormant.** Nitro authenticates with a plain SSO ticket over whatever transport security the socket already has. Do not build the DH exchange expecting the client to participate.
 
 ### 1.7 Disconnection
 
 ```
-  ← 4000  DISCONNECT_REASON  DisconnectReasonEvent    (int32 reason)
+  outgoing 4000  DISCONNECT_REASON  DisconnectReasonEvent    (int32 reason)
 ```
 
 Handled by `useNotification`, which maps the reason code to a dialog. Note `4000` is `RELEASE_VERSION` outgoing and `DISCONNECT_REASON` incoming — same number, opposite directions, unrelated packets. Do not let them collide in a shared opcode table.
@@ -263,8 +263,8 @@ Everything here is the client reacting to `230` and populating the UI shell. A s
 ### The user object
 
 ```
-  → 756   USER_INFO          InfoRetrieveMessageComposer
-  ← 3985  USER_INFO          UserObjectEvent
+  incoming 756   USER_INFO          InfoRetrieveMessageComposer
+  outgoing 3985  USER_INFO          UserObjectEvent
 ```
 
 `3985` is the single most important packet after auth. It carries `UserInfoDataParser`: id, name, figure, sex, motto, real name, respects remaining, pet respects remaining, and stream-publishing flags. `useSessionInfo` reads it into shared state; the avatar image, the toolbar, and the profile all depend on it. Send it before anything else that references the user.
@@ -272,7 +272,7 @@ Everything here is the client reacting to `230` and populating the UI shell. A s
 ### Permissions
 
 ```
-  ← 3599  USER_PERMISSIONS   UserRightsMessageEvent
+  outgoing 3599  USER_PERMISSIONS   UserRightsMessageEvent
 ```
 
 Club level, security level, whether the account is an ambassador. Gates the moderation tools and staff-only UI. Send unprompted after `3985`.
@@ -282,16 +282,16 @@ Club level, security level, whether the account is an ambassador. Gates the mode
 Two independent flows, both driven by `usePurse` (`src/hooks/purse/usePurse.ts`):
 
 ```
-  → 540   USER_CURRENCY      GetCreditsInfoComposer
-  ← 3642  USER_CREDITS       CreditBalanceEvent        (credits as a string)
-  ← 509   USER_CURRENCY      UserCurrencyEvent         (map of activityPointType → amount)
+  incoming 540   USER_CURRENCY      GetCreditsInfoComposer
+  outgoing 3642  USER_CREDITS       CreditBalanceEvent        (credits as a string)
+  outgoing 509   USER_CURRENCY      UserCurrencyEvent         (map of activityPointType incoming amount)
 ```
 
 Then, on a 50-second interval:
 
 ```
-  → 1071  USER_SUBSCRIPTION  ScrGetUserInfoMessageComposer('habbo_club')
-  ← 1097  USER_SUBSCRIPTION  ScrSendUserInfoEvent
+  incoming 1071  USER_SUBSCRIPTION  ScrGetUserInfoMessageComposer('habbo_club')
+  outgoing 1097  USER_SUBSCRIPTION  ScrSendUserInfoEvent
 ```
 
 `1097` drives club status, days remaining, and the HC badge. The client polls it every 50s whether or not anything changed, so make it cheap.
@@ -301,14 +301,14 @@ Balance changes are pushed, never polled: re-send `3642` / `509` whenever credit
 ### Preferences
 
 ```
-  ← 724   ACCOUNT_PREFERENCES  AccountPreferencesEvent
+  outgoing 724   ACCOUNT_PREFERENCES  AccountPreferencesEvent
 ```
 
 Chat mode, bubble width, scroll speed, friend-notification setting. The client also writes these back:
 
 ```
-  → 1149  SET_CHAT_PREFERENCES        SetChatPreferencesMessageComposer(mode, bubbleWidth, scrollSpeed)
-  → 2634  SET_CHAT_STYLE_PREFERENCE   SetChatStylePreferenceComposer(styleId, fontSizeMode)
+  incoming 1149  SET_CHAT_PREFERENCES        SetChatPreferencesMessageComposer(mode, bubbleWidth, scrollSpeed)
+  incoming 2634  SET_CHAT_STYLE_PREFERENCE   SetChatStylePreferenceComposer(styleId, fontSizeMode)
 ```
 
 `useSessionInfo` expects the server to **echo `724` back** after a write — local state is re-hydrated from the roundtrip rather than trusted optimistically.
@@ -328,19 +328,19 @@ The navigator is the largest single feature by packet count and the one where th
 Opening the navigator window sends init exactly once, guarded by a `needsInit` flag:
 
 ```
-  → 1590  NAVIGATOR_INIT     NewNavigatorInitComposer    (no payload)
+  incoming 1590  NAVIGATOR_INIT     NewNavigatorInitComposer    (no payload)
 ```
 
 `useNavigator` handles exactly four of the replies the protocol defines:
 
 ```
-  ← 24    NAVIGATOR_METADATA   NavigatorMetaDataEvent
+  outgoing 24    NAVIGATOR_METADATA   NavigatorMetaDataEvent
               int32 n × NavigatorTopLevelContext          the tabs
-  ← 432   NAVIGATOR_SEARCHES   NavigatorSavedSearchesEvent
+  outgoing 432   NAVIGATOR_SEARCHES   NavigatorSavedSearchesEvent
               int32 n × NavigatorSavedSearch              saved searches
-  ← 3586  USER_HOME_ROOM       NavigatorHomeRoomEvent
+  outgoing 3586  USER_HOME_ROOM       NavigatorHomeRoomEvent
               int32 homeRoomId, int32 roomIdToEnter
-  ← 3708  NAVIGATOR_SEARCH     NavigatorSearchResultBlocksEvent
+  outgoing 3708  NAVIGATOR_SEARCH     NavigatorSearchResultBlocksEvent
               NavigatorSearchResultSet                    the initial result set
 ```
 
@@ -348,17 +348,17 @@ Opening the navigator window sends init exactly once, guarded by a `needsInit` f
 
 ⚠️ Three further init replies exist in the protocol and are registered, but **`useNavigator` does not listen for them**, so sending them has no effect:
 
-- `← 3937 NAVIGATOR_SETTINGS` `NewNavigatorPreferencesEvent` — `int32 windowX, windowY, windowWidth, windowHeight`, `boolean leftPanelHidden`, `int32 resultsMode`
-- `← 1754 NAVIGATOR_COLLAPSED` `NavigatorCollapsedCategoriesMessageEvent` — counted list of collapsed category codes
-- `← 1761 NAVIGATOR_LIFTED` `NavigatorLiftedRoomsEvent` — counted list of promoted rooms
+- `outgoing 3937 NAVIGATOR_SETTINGS` `NewNavigatorPreferencesEvent` — `int32 windowX, windowY, windowWidth, windowHeight`, `boolean leftPanelHidden`, `int32 resultsMode`
+- `outgoing 1754 NAVIGATOR_COLLAPSED` `NavigatorCollapsedCategoriesMessageEvent` — counted list of collapsed category codes
+- `outgoing 1761 NAVIGATOR_LIFTED` `NavigatorLiftedRoomsEvent` — counted list of promoted rooms
 
 Window geometry is persisted client-side instead. Do not spend time on these three.
 
 ### 3.2 Searching
 
 ```
-  → 81    NAVIGATOR_SEARCH   NewNavigatorSearchComposer(code, data)
-  ← 3708  NAVIGATOR_SEARCH   NavigatorSearchResultBlocksEvent
+  incoming 81    NAVIGATOR_SEARCH   NewNavigatorSearchComposer(code, data)
+  outgoing 3708  NAVIGATOR_SEARCH   NavigatorSearchResultBlocksEvent
 ```
 
 `code` is the search-code string from a `NavigatorTopLevelContext` (or a saved search); `data` is the free-text filter, usually empty.
@@ -370,19 +370,19 @@ Echo `code` and `data` back unchanged. The client matches the reply against the 
 ### 3.3 Saved searches & view preferences
 
 ```
-  → 1188  NAVIGATOR_SEARCH_SAVE          NavigatorAddSavedSearchComposer(code, data)
-  → 2444  NAVIGATOR_DELETE_SAVED_SEARCH  NavigatorDeleteSavedSearchComposer(searchId)
+  incoming 1188  NAVIGATOR_SEARCH_SAVE          NavigatorAddSavedSearchComposer(code, data)
+  incoming 2444  NAVIGATOR_DELETE_SAVED_SEARCH  NavigatorDeleteSavedSearchComposer(searchId)
 ```
 
-Both are live. Reply to either with a refreshed `← 432 NavigatorSavedSearchesEvent`; there is no dedicated ack.
+Both are live. Reply to either with a refreshed `outgoing 432 NavigatorSavedSearchesEvent`; there is no dedicated ack.
 
 Dormant, though registered — the collapse/expand and list-mode state is kept locally:
 
 ```
-  → 3920  NAVIGATOR_SEARCH_CLOSE          NavigatorAddCollapsedCategoryMessageComposer(code)
-  → 3449  NAVIGATOR_SEARCH_OPEN           NavigatorRemoveCollapsedCategoryMessageComposer(code)
-  → 3681  NAVIGATOR_CATEGORY_LIST_MODE    NavigatorSetSearchCodeViewModeMessageComposer(category, listmode)
-  → 1276  NAVIGATOR_SETTINGS_SAVE         SetNewNavigatorWindowPreferencesMessageComposer(x, y, width, height, leftSideOpen, mode)
+  incoming 3920  NAVIGATOR_SEARCH_CLOSE          NavigatorAddCollapsedCategoryMessageComposer(code)
+  incoming 3449  NAVIGATOR_SEARCH_OPEN           NavigatorRemoveCollapsedCategoryMessageComposer(code)
+  incoming 3681  NAVIGATOR_CATEGORY_LIST_MODE    NavigatorSetSearchCodeViewModeMessageComposer(category, listmode)
+  incoming 1276  NAVIGATOR_SETTINGS_SAVE         SetNewNavigatorWindowPreferencesMessageComposer(x, y, width, height, leftSideOpen, mode)
 ```
 
 ### 3.4 Room information
@@ -390,8 +390,8 @@ Dormant, though registered — the collapse/expand and list-mode state is kept l
 The single most reused packet pair in the client — the navigator, the room-info window, the group views, chat history and the room-link widget all listen for `3042`.
 
 ```
-  → 2603  GET_GUEST_ROOM   GetGuestRoomMessageComposer(roomId, enterRoom, forwardRoom)
-  ← 3042  ROOM_INFO        GetGuestRoomResultEvent
+  incoming 2603  GET_GUEST_ROOM   GetGuestRoomMessageComposer(roomId, enterRoom, forwardRoom)
+  outgoing 3042  ROOM_INFO        GetGuestRoomResultEvent
 ```
 
 `3042`'s wire order is easy to get wrong — the flags are **split around** the room data block:
@@ -405,14 +405,14 @@ boolean isGroupMember
 boolean allInRoomMuted
 RoomModerationSettings moderation
 boolean canMute
-int32 chatFloodSensitivity     → RoomChatSettings.fromFloodSensitivity(...)
+int32 chatFloodSensitivity     incoming RoomChatSettings.fromFloodSensitivity(...)
 boolean openingConnection
 ```
 
 `enterRoom` / `forwardRoom` in the request are echoed back as `roomEnter` / `roomForward`; the client uses them to decide whether this reply should trigger an actual room entry or just populate a window.
 
 ```
-  ← 3030  ROOM_INFO_UPDATED  RoomInfoUpdatedEvent   (int32 roomId)
+  outgoing 3030  ROOM_INFO_UPDATED  RoomInfoUpdatedEvent   (int32 roomId)
 ```
 
 A nudge, not a payload — the client re-requests `2603` for that room. Send it after any change to room settings, name, or staff-pick state.
@@ -420,17 +420,17 @@ A nudge, not a payload — the client re-requests `2603` for that room. Send it 
 ### 3.5 Room creation
 
 ```
-  → 354   ROOM_CREATE      CreateFlatMessageComposer(roomName, roomDesc, modelName, categoryId, maxVisitors, tradeType)
-  ← 1712  ROOM_CREATED     FlatCreatedEvent(int32 roomId, string roomName)
+  incoming 354   ROOM_CREATE      CreateFlatMessageComposer(roomName, roomDesc, modelName, categoryId, maxVisitors, tradeType)
+  outgoing 1712  ROOM_CREATED     FlatCreatedEvent(int32 roomId, string roomName)
 ```
 
 On `1712` the client opens the new room's info window. Gating:
 
 ```
-  → 2617  CAN_CREATE_ROOM        CanCreateRoomMessageComposer   (no payload)   — DORMANT
-  ← 2831  CAN_CREATE_ROOM        CanCreateRoomEvent(int32 resultCode, int32 roomLimit)
-  ← 853   CAN_CREATE_ROOM_EVENT  CanCreateRoomEventEvent(boolean canCreate, int32 errorCode)
-  ← -1    NAVIGATOR_OPEN_ROOM_CREATOR  NavigatorOpenRoomCreatorEvent  ⚠️ placeholder opcode
+  incoming 2617  CAN_CREATE_ROOM        CanCreateRoomMessageComposer   (no payload)   — DORMANT
+  outgoing 2831  CAN_CREATE_ROOM        CanCreateRoomEvent(int32 resultCode, int32 roomLimit)
+  outgoing 853   CAN_CREATE_ROOM_EVENT  CanCreateRoomEventEvent(boolean canCreate, int32 errorCode)
+  outgoing -1    NAVIGATOR_OPEN_ROOM_CREATOR  NavigatorOpenRoomCreatorEvent  ⚠️ placeholder opcode
 ```
 
 `853` is handled by `useNavigator` and gates the create button. `2831` is registered but has no listener. `NavigatorOpenRoomCreatorEvent` would open the creator window, but its constant is the placeholder `-1` — unsendable.
@@ -438,8 +438,8 @@ On `1712` the client opens the new room's info window. Gating:
 The room categories that populate the creator's dropdowns:
 
 ```
-  → 235   GET_USER_FLAT_CATS    GetUserFlatCatsMessageComposer   → ← 837  UserFlatCatsEvent
-  → 3018  GET_USER_EVENT_CATS   GetUserEventCatsMessageComposer  → ← 1370 UserEventCatsEvent
+  incoming 235   GET_USER_FLAT_CATS    GetUserFlatCatsMessageComposer   incoming outgoing 837  UserFlatCatsEvent
+  incoming 3018  GET_USER_EVENT_CATS   GetUserEventCatsMessageComposer  incoming outgoing 1370 UserEventCatsEvent
 ```
 
 Both replies are counted lists of `NavigatorCategoryDataParser` / `NavigatorEventCategoryDataParser`.
@@ -449,31 +449,31 @@ Both replies are counted lists of `NavigatorCategoryDataParser` / `NavigatorEven
 All live, all sent from `NavigatorRoomInfoView.tsx` unless noted:
 
 ```
-  → 3169  ROOM_FAVORITE          AddFavouriteRoomMessageComposer(roomId)
-  → 1654  ROOM_FAVORITE_REMOVE   DeleteFavouriteRoomMessageComposer(roomId)
-  → 1817  USER_HOME_ROOM         UpdateHomeRoomMessageComposer(roomId)
-  → 2985  ROOM_STAFF_PICK        ToggleStaffPickMessageComposer(roomId)
-  → 407   ROOM_LIKE              RateFlatMessageComposer(rating)     from RoomToolsWidgetView
+  incoming 3169  ROOM_FAVORITE          AddFavouriteRoomMessageComposer(roomId)
+  incoming 1654  ROOM_FAVORITE_REMOVE   DeleteFavouriteRoomMessageComposer(roomId)
+  incoming 1817  USER_HOME_ROOM         UpdateHomeRoomMessageComposer(roomId)
+  incoming 2985  ROOM_STAFF_PICK        ToggleStaffPickMessageComposer(roomId)
+  incoming 407   ROOM_LIKE              RateFlatMessageComposer(rating)     from RoomToolsWidgetView
 ```
 
 Favourites have two reply events, **neither of which has a listener** — the client updates its own list optimistically:
 
 ```
-  ← 3081  USER_FAVORITE_ROOM        FavouriteChangedEvent(int32 flatId, boolean added)   — no listener
-  ← 1055  USER_FAVORITE_ROOM_COUNT  FavouritesEvent(int32 limit, counted list)           — no listener
+  outgoing 3081  USER_FAVORITE_ROOM        FavouriteChangedEvent(int32 flatId, boolean added)   — no listener
+  outgoing 1055  USER_FAVORITE_ROOM_COUNT  FavouritesEvent(int32 limit, counted list)           — no listener
 ```
 
-For staff pick and home room, confirm with `← 3030 RoomInfoUpdatedEvent` so the info window refreshes. Rating is answered by `RoomRatingEvent`.
+For staff pick and home room, confirm with `outgoing 3030 RoomInfoUpdatedEvent` so the info window refreshes. Rating is answered by `RoomRatingEvent`.
 
 ```
-  → 260   ROOM_RIGHTS_REMOVE_OWN   RemoveOwnRoomRightsRoomMessageComposer(roomId)   — DORMANT
+  incoming 260   ROOM_RIGHTS_REMOVE_OWN   RemoveOwnRoomRightsRoomMessageComposer(roomId)   — DORMANT
 ```
 
 ### 3.7 Chat filter words
 
 ```
-  → 790   ROOM_FILTER_WORDS         GetCustomRoomFilterMessageComposer(roomId)
-  → 1622  ROOM_FILTER_WORDS_MODIFY  UpdateRoomFilterMessageComposer(roomId, isAddingWord, word)
+  incoming 790   ROOM_FILTER_WORDS         GetCustomRoomFilterMessageComposer(roomId)
+  incoming 1622  ROOM_FILTER_WORDS_MODIFY  UpdateRoomFilterMessageComposer(roomId, isAddingWord, word)
 ```
 
 `1622` is sent from `RoomFilterWordsWidgetView`. `isAddingWord` is a boolean — one byte, `1` to add and `0` to remove. Both are answered by `RoomFilterSettingsMessageEvent` (see §13).
@@ -481,10 +481,10 @@ For staff pick and home room, confirm with `← 3030 RoomInfoUpdatedEvent` so th
 ### 3.8 Room events / promotions
 
 ```
-  → 2117  EDIT_ROOM_EVENT     EditEventMessageComposer(roomId, name, description)
-  → 3402  CANCEL_ROOM_EVENT   CancelEventMessageComposer(roomId)   — DORMANT
-  ← 2481  ROOM_EVENT          RoomEventEvent
-  ← 894   ROOM_EVENT_CANCEL   RoomEventCancelEvent   (genuinely empty)   — no listener
+  incoming 2117  EDIT_ROOM_EVENT     EditEventMessageComposer(roomId, name, description)
+  incoming 3402  CANCEL_ROOM_EVENT   CancelEventMessageComposer(roomId)   — DORMANT
+  outgoing 2481  ROOM_EVENT          RoomEventEvent
+  outgoing 894   ROOM_EVENT_CANCEL   RoomEventCancelEvent   (genuinely empty)   — no listener
 ```
 
 `2117` is sent from the room-promote widget. `2481` is handled in both `useNavigator` and `useRoomPromote`.
@@ -496,42 +496,42 @@ For staff pick and home room, confirm with `← 3030 RoomInfoUpdatedEvent` so th
 The navigator owns the doorbell UI even though entry itself is a room-session flow (§4):
 
 ```
-  ← 466   ROOM_DOORBELL           DoorbellMessageEvent(string userName)
-  ← 1086  ROOM_DOORBELL_REJECTED  FlatAccessDeniedMessageEvent(string userName)
+  outgoing 466   ROOM_DOORBELL           DoorbellMessageEvent(string userName)
+  outgoing 1086  ROOM_DOORBELL_REJECTED  FlatAccessDeniedMessageEvent(string userName)
 ```
 
 An **empty** `userName` in `466` means "your own knock is pending" and shows the waiting state; a non-empty name means someone is knocking at a room you control. The same distinction applies to `1086`. Getting this wrong makes the visitor see the owner's dialog.
 
 ### 3.10 Legacy search composers — all dormant
 
-The old protocol had one composer per search type. Nitro sends **none** of them; everything goes through `→ 81`. They remain registered, so a server may implement them, but nothing will ever arrive.
+The old protocol had one composer per search type. Nitro sends **none** of them; everything goes through `incoming 81`. They remain registered, so a server may implement them, but nothing will ever arrive.
 
 | Packet | Payload |
 |---|---|
-| `→ 361` `MyRoomsSearchMessageComposer` | none |
-| `→ 2334` `MyFavouriteRoomsSearchMessageComposer` | none |
-| `→ 632` `MyRoomHistorySearchMessageComposer` | none |
-| `→ 2174` `MyFrequentRoomHistorySearchMessageComposer` | none |
-| `→ 1903` `MyFriendsRoomsSearchMessageComposer` | none |
-| `→ 1091` `MyRoomRightsSearchMessageComposer` | none |
-| `→ 2224` `MyGuildBasesSearchMessageComposer` | none |
-| `→ 184` `MyRecommendedRoomsMessageComposer` | none |
-| `→ 2517` `RoomsWhereMyFriendsAreSearchMessageComposer` | none |
-| `→ 2135` `RoomsWithHighestScoreSearchMessageComposer` | `int32` |
-| `→ 2857` `PopularRoomsSearchMessageComposer` | `string`, `int32` |
-| `→ 3487` `RoomTextSearchMessageComposer` | `string searchText` |
-| `→ 3744` `GuildBaseSearchMessageComposer` | `int32 groupId` |
-| `→ 1307` `CompetitionRoomsSearchMessageComposer` | `int32`, `int32` |
-| `→ 3942` `GET_OFFICIAL_ROOMS` `GetOfficialRoomsMessageComposer` | `int32` |
-| `→ 3214` `GET_POPULAR_ROOM_TAGS` `GetPopularRoomTagsMessageComposer` | none |
-| `→ -24` `GetCategoriesWithUserCountMessageComposer` | none — ⚠️ placeholder opcode |
+| `incoming 361` `MyRoomsSearchMessageComposer` | none |
+| `incoming 2334` `MyFavouriteRoomsSearchMessageComposer` | none |
+| `incoming 632` `MyRoomHistorySearchMessageComposer` | none |
+| `incoming 2174` `MyFrequentRoomHistorySearchMessageComposer` | none |
+| `incoming 1903` `MyFriendsRoomsSearchMessageComposer` | none |
+| `incoming 1091` `MyRoomRightsSearchMessageComposer` | none |
+| `incoming 2224` `MyGuildBasesSearchMessageComposer` | none |
+| `incoming 184` `MyRecommendedRoomsMessageComposer` | none |
+| `incoming 2517` `RoomsWhereMyFriendsAreSearchMessageComposer` | none |
+| `incoming 2135` `RoomsWithHighestScoreSearchMessageComposer` | `int32` |
+| `incoming 2857` `PopularRoomsSearchMessageComposer` | `string`, `int32` |
+| `incoming 3487` `RoomTextSearchMessageComposer` | `string searchText` |
+| `incoming 3744` `GuildBaseSearchMessageComposer` | `int32 groupId` |
+| `incoming 1307` `CompetitionRoomsSearchMessageComposer` | `int32`, `int32` |
+| `incoming 3942` `GET_OFFICIAL_ROOMS` `GetOfficialRoomsMessageComposer` | `int32` |
+| `incoming 3214` `GET_POPULAR_ROOM_TAGS` `GetPopularRoomTagsMessageComposer` | none |
+| `incoming -24` `GetCategoriesWithUserCountMessageComposer` | none — ⚠️ placeholder opcode |
 
 Their reply events are equally dormant:
 
 ```
-  ← 160   GUEST_ROOM_SEARCH_RESULT       GuestRoomSearchResultEvent
-  ← 704   CATEGORIES_WITH_VISITOR_COUNT  CategoriesWithVisitorCountEvent
-  ← 84    COMPETITION_ROOMS_DATA         CompetitionRoomsDataMessageEvent
+  outgoing 160   GUEST_ROOM_SEARCH_RESULT       GuestRoomSearchResultEvent
+  outgoing 704   CATEGORIES_WITH_VISITOR_COUNT  CategoriesWithVisitorCountEvent
+  outgoing 84    COMPETITION_ROOMS_DATA         CompetitionRoomsDataMessageEvent
 ```
 
 `PopularRoomTagsResultEvent` is the documented reply to `3214`; it belongs to the same dormant group.
@@ -541,9 +541,9 @@ Their reply events are equally dormant:
 Registered, never sent:
 
 ```
-  → 1971  ROOM_AD_SEARCH             RoomAdSearchMessageComposer(int32, int32)
-  → 759   ROOM_AD_EVENT_TAB_CLICKED  RoomAdEventTabAdClickedComposer(int32, string, int32)
-  → 3729  ROOM_AD_EVENT_TAB_VIEWED   RoomAdEventTabViewedComposer   (no payload)
+  incoming 1971  ROOM_AD_SEARCH             RoomAdSearchMessageComposer(int32, int32)
+  incoming 759   ROOM_AD_EVENT_TAB_CLICKED  RoomAdEventTabAdClickedComposer(int32, string, int32)
+  incoming 3729  ROOM_AD_EVENT_TAB_VIEWED   RoomAdEventTabViewedComposer   (no payload)
 ```
 
 The catalog's room-ad purchase flow (`GetRoomAdPurchaseInfoComposer`, `PurchaseRoomAdMessageComposer`) is live and belongs to §7, not here.
@@ -551,8 +551,8 @@ The catalog's room-ad purchase flow (`GetRoomAdPurchaseInfoComposer`, `PurchaseR
 ### 3.12 Forwarding & external links
 
 ```
-  → 584   CONVERT_GLOBAL_ROOM_ID   ConvertGlobalRoomIdMessageComposer(flatId)
-  ← 3494  CONVERTED_ROOM_ID        ConvertedRoomIdEvent(string globalId, int32 convertedId)   — no listener
+  incoming 584   CONVERT_GLOBAL_ROOM_ID   ConvertGlobalRoomIdMessageComposer(flatId)
+  outgoing 3494  CONVERTED_ROOM_ID        ConvertedRoomIdEvent(string globalId, int32 convertedId)   — no listener
 ```
 
 `584` is live: it is wired to the `LegacyExternalInterface` `OPENROOM` callback, so an external page asking the client to open a room by global id sends this. The reply event has no handler, so the forward must be driven by a room-entry packet (§4) rather than by `3494`.
@@ -560,13 +560,13 @@ The catalog's room-ad purchase flow (`GetRoomAdPurchaseInfoComposer`, `PurchaseR
 Dormant forwarding composers:
 
 ```
-  → 3427  FORWARD_TO_SOME_ROOM             ForwardToSomeRoomMessageComposer(string)
-  → 3551  FORWARD_TO_RANDOM_PROMOTED_ROOM  ForwardToARandomPromotedRoomMessageComposer(string)
-  → 3101  SET_ROOM_SESSION_TAGS            SetRoomSessionTagsMessageComposer(string, string)
-  → 2045  ROOM_DIRECTORY_...OPEN_CONNECTION RoomNetworkOpenConnectionMessageComposer(int32, int32)
+  incoming 3427  FORWARD_TO_SOME_ROOM             ForwardToSomeRoomMessageComposer(string)
+  incoming 3551  FORWARD_TO_RANDOM_PROMOTED_ROOM  ForwardToARandomPromotedRoomMessageComposer(string)
+  incoming 3101  SET_ROOM_SESSION_TAGS            SetRoomSessionTagsMessageComposer(string, string)
+  incoming 2045  ROOM_DIRECTORY_...OPEN_CONNECTION RoomNetworkOpenConnectionMessageComposer(int32, int32)
 ```
 
-`ROOM_FORWARD` (`← 3339 RoomForwardMessageEvent`) is handled in `useNavigator` and is the packet you actually use to push a client into a room. ⚠️ `EVENTS.MD` documents it as empty and gives no parser path; it really reads `int32 roomId` from the misspelled `RoomFowardParser`.
+`ROOM_FORWARD` (`outgoing 3339 RoomForwardMessageEvent`) is handled in `useNavigator` and is the packet you actually use to push a client into a room. ⚠️ `EVENTS.MD` documents it as empty and gives no parser path; it really reads `int32 roomId` from the misspelled `RoomFowardParser`.
 
 ---
 
@@ -577,31 +577,31 @@ The most sequenced flow in the protocol, and the one most likely to desync. Spli
 ### Phase 1 — ask to enter
 
 ```
-  → 3234  ROOM_ENTER   OpenFlatConnectionMessageComposer(roomId, password, homeRoomId)
+  incoming 3234  ROOM_ENTER   OpenFlatConnectionMessageComposer(roomId, password, homeRoomId)
 ```
 
 Now the server picks one of four outcomes:
 
 ```
-  ← 611   ROOM_ENTER              OpenConnectionMessageEvent      accepted, proceed to phase 2
-  ← 466   ROOM_DOORBELL           DoorbellMessageEvent            ringing, client shows "please wait"
-  ← 1086  ROOM_DOORBELL_REJECTED  FlatAccessDeniedMessageEvent    turned away
-  ← 2430  ROOM_ENTER_ERROR        CantConnectMessageEvent         full, banned, closed
+  outgoing 611   ROOM_ENTER              OpenConnectionMessageEvent      accepted, proceed to phase 2
+  outgoing 466   ROOM_DOORBELL           DoorbellMessageEvent            ringing, client shows "please wait"
+  outgoing 1086  ROOM_DOORBELL_REJECTED  FlatAccessDeniedMessageEvent    turned away
+  outgoing 2430  ROOM_ENTER_ERROR        CantConnectMessageEvent         full, banned, closed
 ```
 
-For the doorbell path, the accept later arrives as `← 2051 ROOM_DOORBELL_ACCEPTED` (`FlatAccessibleMessageEvent`) and the client re-enters on its own.
+For the doorbell path, the accept later arrives as `outgoing 2051 ROOM_DOORBELL_ACCEPTED` (`FlatAccessibleMessageEvent`) and the client re-enters on its own.
 
 ### Phase 2 — the model
 
 ```
-  ← 2349  ROOM_MODEL_NAME   RoomReadyMessageEvent   (int32 roomId, string modelName)
+  outgoing 2349  ROOM_MODEL_NAME   RoomReadyMessageEvent   (int32 roomId, string modelName)
 ```
 
 This is the hinge of the whole flow. On receipt the client sets the room id, sets the model name — and **on the first room of the session only** replies:
 
 ```
-  → 1901  FURNITURE_ALIASES   GetFurnitureAliasesMessageComposer
-  ← 154   FURNITURE_ALIASES   FurnitureAliasesMessageEvent
+  incoming 1901  FURNITURE_ALIASES   GetFurnitureAliasesMessageComposer
+  outgoing 154   FURNITURE_ALIASES   FurnitureAliasesMessageEvent
 ```
 
 `_initialConnection` guards this: on every later room entry the client does **not** re-request aliases. If your server waits for `1901` before continuing, the second room the user enters will hang forever. Push the rest of the room state unprompted.
@@ -613,25 +613,25 @@ Note `1901` is `FURNITURE_ALIASES` outgoing and `ROOM_SPECTATOR` incoming. Diffe
 After `2349`, send the room contents. The client does not request these:
 
 ```
-  ← 1956  ROOM_PAINT        RoomPropertyMessageEvent          floor / wall / landscape
-  ← 2260  ROOM_HEIGHT_MAP   HeightMapMessageEvent             the tile grid
-  ← 2885  ROOM_MODEL        FloorHeightMapMessageEvent        the floor plan string
-  ← 2104  FURNITURE_FLOOR   ObjectsMessageEvent               all floor furni
-  ← 3379  ITEM_WALL         ItemsMessageEvent                 all wall items
-  ← 996   UNIT              UsersMessageEvent                 all avatars, pets and bots present
-  ← 2914  ROOM_INFO_OWNER   RoomEntryInfoMessageEvent         roomId + isOwner
-  ← 2986  ROOM_THICKNESS    RoomVisualizationSettingsEvent    wall/floor thickness, hide walls
-  ← 594   ROOM_SETTINGS_CHAT RoomChatSettingsMessageEvent     bubble mode, scroll, distance
+  outgoing 1956  ROOM_PAINT        RoomPropertyMessageEvent          floor / wall / landscape
+  outgoing 2260  ROOM_HEIGHT_MAP   HeightMapMessageEvent             the tile grid
+  outgoing 2885  ROOM_MODEL        FloorHeightMapMessageEvent        the floor plan string
+  outgoing 2104  FURNITURE_FLOOR   ObjectsMessageEvent               all floor furni
+  outgoing 3379  ITEM_WALL         ItemsMessageEvent                 all wall items
+  outgoing 996   UNIT              UsersMessageEvent                 all avatars, pets and bots present
+  outgoing 2914  ROOM_INFO_OWNER   RoomEntryInfoMessageEvent         roomId + isOwner
+  outgoing 2986  ROOM_THICKNESS    RoomVisualizationSettingsEvent    wall/floor thickness, hide walls
+  outgoing 594   ROOM_SETTINGS_CHAT RoomChatSettingsMessageEvent     bubble mode, scroll, distance
 ```
 
 The heightmap must arrive before the object lists — furni positions are resolved against the grid, and objects that land on an unknown tile are dropped silently.
 
-`996` (`UNIT`) is also the packet for anyone entering later; it is a list, so a single-user arrival is just a list of one. Removal is `← 3693 UNIT_REMOVE`.
+`996` (`UNIT`) is also the packet for anyone entering later; it is a list, so a single-user arrival is just a list of one. Removal is `outgoing 3693 UNIT_REMOVE`.
 
 ### Leaving
 
 ```
-  ← 3404  CLOSE_CONNECTION   CloseConnectionMessageEvent
+  outgoing 3404  CLOSE_CONNECTION   CloseConnectionMessageEvent
 ```
 
 Tears the session down. Also what you send to force a user out of a room.
@@ -643,17 +643,17 @@ Tears the session down. Also what you send to force a user out of a room.
 ### Talking
 
 ```
-  → 3034  UNIT_CHAT          ChatMessageComposer(message, styleId)
-  → 1763  UNIT_CHAT_SHOUT    ShoutMessageComposer(message, styleId)
-  → 1697  UNIT_CHAT_WHISPER  WhisperMessageComposer(recipient, message, styleId)
+  incoming 3034  UNIT_CHAT          ChatMessageComposer(message, styleId)
+  incoming 1763  UNIT_CHAT_SHOUT    ShoutMessageComposer(message, styleId)
+  incoming 1697  UNIT_CHAT_WHISPER  WhisperMessageComposer(recipient, message, styleId)
 ```
 
 Nothing is echoed locally. The speaker sees their own message **only** because the server broadcasts it back:
 
 ```
-  ← 311   UNIT_CHAT          ChatMessageEvent
-  ← 1776  UNIT_CHAT_SHOUT    ShoutMessageEvent
-  ← 3072  UNIT_CHAT_WHISPER  WhisperMessageEvent
+  outgoing 311   UNIT_CHAT          ChatMessageEvent
+  outgoing 1776  UNIT_CHAT_SHOUT    ShoutMessageEvent
+  outgoing 3072  UNIT_CHAT_WHISPER  WhisperMessageEvent
 ```
 
 Whispers go only to sender and recipient. If you drop the echo to the sender, the client looks broken.
@@ -661,22 +661,22 @@ Whispers go only to sender and recipient. If you drop the echo to the sender, th
 Rate limiting:
 
 ```
-  ← 3614  FLOOD_CONTROL      FloodControlMessageEvent   (int32 seconds)
+  outgoing 3614  FLOOD_CONTROL      FloodControlMessageEvent   (int32 seconds)
 ```
 
 Typing indicator:
 
 ```
-  → 2106  UNIT_TYPING        StartTypingMessageComposer
-  → 2718  UNIT_TYPING_STOP   CancelTypingMessageComposer
-  ← 206   UNIT_TYPING        UserTypingMessageEvent     (userId, isTyping)
+  incoming 2106  UNIT_TYPING        StartTypingMessageComposer
+  incoming 2718  UNIT_TYPING_STOP   CancelTypingMessageComposer
+  outgoing 206   UNIT_TYPING        UserTypingMessageEvent     (userId, isTyping)
 ```
 
 ### Moving
 
 ```
-  → 2364  UNIT_WALK          MoveAvatarMessageComposer(x, y)
-  ← 2613  UNIT_STATUS        UserUpdateMessageEvent
+  incoming 2364  UNIT_WALK          MoveAvatarMessageComposer(x, y)
+  outgoing 2613  UNIT_STATUS        UserUpdateMessageEvent
 ```
 
 `2613` carries the whole path-step update — position, direction, and the status map (`mv`, `sit`, `lay`, `flatctrl`). The client does no pathfinding of its own; it renders exactly the steps you send. Movement is entirely server-authoritative.
@@ -684,8 +684,8 @@ Typing indicator:
 ### Expressing
 
 ```
-  → 48    UNIT_DANCE         DanceMessageComposer(styleId)     ← 2217 DanceMessageEvent
-  → 2912  AVATAR_EXPRESSION  AvatarExpressionMessageComposer   ← 1036 ExpressionMessageEvent
+  incoming 48    UNIT_DANCE         DanceMessageComposer(styleId)     outgoing 2217 DanceMessageEvent
+  incoming 2912  AVATAR_EXPRESSION  AvatarExpressionMessageComposer   outgoing 1036 ExpressionMessageEvent
 ```
 
 ---
@@ -693,23 +693,23 @@ Typing indicator:
 ## 6. Furniture
 
 ```
-  → 1974  FURNITURE_PLACE          PlaceObjectMessageComposer
-  ← 368   FURNITURE_FLOOR_ADD      ObjectAddMessageEvent       floor item appeared
-  ← 3733  ITEM_WALL_ADD            ItemAddMessageEvent         wall item appeared
+  incoming 1974  FURNITURE_PLACE          PlaceObjectMessageComposer
+  outgoing 368   FURNITURE_FLOOR_ADD      ObjectAddMessageEvent       floor item appeared
+  outgoing 3733  ITEM_WALL_ADD            ItemAddMessageEvent         wall item appeared
 
-  → 1482  FURNITURE_FLOOR_UPDATE   MoveObjectMessageComposer(id, x, y, direction)
-  ← 114   FURNITURE_FLOOR_UPDATE   ObjectUpdateMessageEvent
+  incoming 1482  FURNITURE_FLOOR_UPDATE   MoveObjectMessageComposer(id, x, y, direction)
+  outgoing 114   FURNITURE_FLOOR_UPDATE   ObjectUpdateMessageEvent
 
-  → 1919  FURNITURE_PICKUP         PickupObjectMessageComposer
-  ← 1916  FURNITURE_FLOOR_REMOVE   ObjectRemoveMessageEvent
+  incoming 1919  FURNITURE_PICKUP         PickupObjectMessageComposer
+  outgoing 1916  FURNITURE_FLOOR_REMOVE   ObjectRemoveMessageEvent
 
-  → 3353  USE_FURNITURE            UseFurnitureMessageComposer(itemId, state)
-  ← 2329  FURNITURE_DATA           ObjectDataUpdateMessageEvent
+  incoming 3353  USE_FURNITURE            UseFurnitureMessageComposer(itemId, state)
+  outgoing 2329  FURNITURE_DATA           ObjectDataUpdateMessageEvent
 ```
 
 The pattern throughout: the client sends intent and changes nothing locally. Every visible change comes from the broadcast. Placement that you reject needs no error packet — simply not sending the add event leaves the item in inventory, which is the correct outcome.
 
-Placing from inventory also triggers `← FurniListRemoveEvent` so the inventory window stays in sync.
+Placing from inventory also triggers `outgoing FurniListRemoveEvent` so the inventory window stays in sync.
 
 ---
 
@@ -718,15 +718,15 @@ Placing from inventory also triggers `← FurniListRemoveEvent` so the inventory
 **Owner:** `src/hooks/catalog/useCatalog.ts`.
 
 ```
-  → 2232  GET_CATALOG_INDEX  GetCatalogIndexComposer(catalogType)
-  ← 3666  CATALOG_PAGE_LIST  CatalogIndexMessageEvent
+  incoming 2232  GET_CATALOG_INDEX  GetCatalogIndexComposer(catalogType)
+  outgoing 3666  CATALOG_PAGE_LIST  CatalogIndexMessageEvent
 ```
 
 `3666` returns the page tree as nested `NodeData` — each node carries visibility, icon, page id, and its children, recursively. The client renders the whole left-hand tree from this one packet.
 
 ```
-  → 2093  GET_CATALOG_PAGE   GetCatalogPageComposer(pageId, offerId, catalogType)
-  ← 1660  CATALOG_PAGE       CatalogPageMessageEvent
+  incoming 2093  GET_CATALOG_PAGE   GetCatalogPageComposer(pageId, offerId, catalogType)
+  outgoing 1660  CATALOG_PAGE       CatalogPageMessageEvent
 ```
 
 `1660` is the big one: page id, catalog type, layout code, localization block, the offer list, and an optional trailing front-page block. The **layout code is a string the client switches on** to pick a React layout component — send a code the client does not know and the page renders empty. Look at `src/components/catalog/views/page/layout/` for the supported set.
@@ -734,17 +734,17 @@ Placing from inventory also triggers `← FurniListRemoveEvent` so the inventory
 Buying:
 
 ```
-  → 1706  CATALOG_PURCHASE   PurchaseFromCatalogComposer(pageId, offerId, extraData, quantity)
+  incoming 1706  CATALOG_PURCHASE   PurchaseFromCatalogComposer(pageId, offerId, extraData, quantity)
 ```
 
 Exactly one of:
 
 ```
-  ← 1570  CATALOG_PURCHASE_OK           PurchaseOKMessageEvent
-  ← 1029  CATALOG_PURCHASE_ERROR        PurchaseErrorMessageEvent
-  ← 2493  CATALOG_PURCHASE_NOT_ALLOWED  PurchaseNotAllowedMessageEvent
-  ← 1038  NOT_ENOUGH_BALANCE            NotEnoughBalanceMessageEvent
-  ← 533   LIMITED_SOLD_OUT              LimitedEditionSoldOutEvent
+  outgoing 1570  CATALOG_PURCHASE_OK           PurchaseOKMessageEvent
+  outgoing 1029  CATALOG_PURCHASE_ERROR        PurchaseErrorMessageEvent
+  outgoing 2493  CATALOG_PURCHASE_NOT_ALLOWED  PurchaseNotAllowedMessageEvent
+  outgoing 1038  NOT_ENOUGH_BALANCE            NotEnoughBalanceMessageEvent
+  outgoing 533   LIMITED_SOLD_OUT              LimitedEditionSoldOutEvent
 ```
 
 The purchase button stays in a spinner until one of these arrives — there is no timeout. Always answer.
@@ -758,10 +758,10 @@ After a successful purchase you must also push the consequences yourself: update
 Four independent inventories, each with the same request/reply shape:
 
 ```
-  → 41    USER_FURNITURE   RequestFurniInventoryComposer   ← 2694  FurniListEvent
-  → 3891  USER_PETS        GetPetInventoryComposer         ← 1200  PetInventoryEvent
-  → 3148  USER_BOTS        GetBotInventoryComposer         ← 682   BotInventoryEvent
-  → 770   USER_BADGES      GetBadgesComposer               ← 2748  BadgesEvent
+  incoming 41    USER_FURNITURE   RequestFurniInventoryComposer   outgoing 2694  FurniListEvent
+  incoming 3891  USER_PETS        GetPetInventoryComposer         outgoing 1200  PetInventoryEvent
+  incoming 3148  USER_BOTS        GetBotInventoryComposer         outgoing 682   BotInventoryEvent
+  incoming 770   USER_BADGES      GetBadgesComposer               outgoing 2748  BadgesEvent
 ```
 
 The furni list is **fragmented**: `2694` carries a total-fragments count and an index, and the client accumulates until it has them all. Send one fragment with `totalFragments = 1, fragmentNumber = 0` if you do not need to page.
@@ -769,35 +769,35 @@ The furni list is **fragmented**: `2694` carries a total-fragments count and an 
 Incremental updates:
 
 ```
-  ← 3151  USER_FURNITURE_ADD      FurniListAddOrUpdateEvent
-  ← 1156  USER_FURNITURE_REMOVE   FurniListRemoveEvent
-  ← 1856  USER_FURNITURE_REFRESH  FurniListInvalidateEvent   discard cache and re-request
+  outgoing 3151  USER_FURNITURE_ADD      FurniListAddOrUpdateEvent
+  outgoing 1156  USER_FURNITURE_REMOVE   FurniListRemoveEvent
+  outgoing 1856  USER_FURNITURE_REFRESH  FurniListInvalidateEvent   discard cache and re-request
 ```
 
 Unseen tracking, which drives the orange dots on the toolbar:
 
 ```
-  ← 3059  UNSEEN_ITEMS               UnseenItemsEvent
-  → 3771  UNSEEN_RESET_ITEMS         ResetUnseenItemIdsComposer(category, ...itemIds)
-  → 699   UNSEEN_RESET_CATEGORY      ResetUnseenItemsComposer(category)
+  outgoing 3059  UNSEEN_ITEMS               UnseenItemsEvent
+  incoming 3771  UNSEEN_RESET_ITEMS         ResetUnseenItemIdsComposer(category, ...itemIds)
+  incoming 699   UNSEEN_RESET_CATEGORY      ResetUnseenItemsComposer(category)
 ```
 
 Badges are split between owned and the (max five) equipped:
 
 ```
-  → 2764  USER_BADGES_CURRENT_UPDATE   SetActivatedBadgesComposer
+  incoming 2764  USER_BADGES_CURRENT_UPDATE   SetActivatedBadgesComposer
 ```
 
 ---
 
 ## 9. Trading
 
-A strict state machine. `src/hooks/inventory/useInventoryTrade.ts` holds the client half; the states are `READY → RUNNING → COUNTDOWN → CONFIRMING → CONFIRMED`.
+A strict state machine. `src/hooks/inventory/useInventoryTrade.ts` holds the client half; the states are `READY incoming RUNNING incoming COUNTDOWN incoming CONFIRMING incoming CONFIRMED`.
 
 ```
-  → 1865  TRADE              OpenTradingComposer(userId)
-  ← 953   TRADE_OPEN         TradingOpenEvent(userOne, canTradeOne, userTwo, canTradeTwo)
-  ← 2855  TRADE_OPEN_FAILED  TradeOpenFailedEvent
+  incoming 1865  TRADE              OpenTradingComposer(userId)
+  outgoing 953   TRADE_OPEN         TradingOpenEvent(userOne, canTradeOne, userTwo, canTradeTwo)
+  outgoing 2855  TRADE_OPEN_FAILED  TradeOpenFailedEvent
 ```
 
 Also possible instead of `953`: `TradingOtherNotAllowedEvent`, `TradingYouAreNotAllowedEvent`.
@@ -805,35 +805,35 @@ Also possible instead of `953`: `TradingOtherNotAllowedEvent`, `TradingYouAreNot
 Both sides then edit their offer. Every change re-broadcasts the **entire** list to both parties:
 
 ```
-  → 2177  TRADE_ITEM         AddItemToTradeComposer(itemId)
-  → 3370  TRADE_ITEMS        AddItemsToTradeComposer(count, ...itemIds)
-  → 573   TRADE_ITEM_REMOVE  RemoveItemFromTradeComposer(itemId)
-  ← 2275  TRADE_LIST_ITEM    TradingItemListEvent
+  incoming 2177  TRADE_ITEM         AddItemToTradeComposer(itemId)
+  incoming 3370  TRADE_ITEMS        AddItemsToTradeComposer(count, ...itemIds)
+  incoming 573   TRADE_ITEM_REMOVE  RemoveItemFromTradeComposer(itemId)
+  outgoing 2275  TRADE_LIST_ITEM    TradingItemListEvent
 ```
 
 `2275` resets both accept flags. That is deliberate: changing your offer un-accepts the trade for both sides, and the client relies on the server enforcing it.
 
 ```
-  → 490   TRADE_ACCEPT       AcceptTradingComposer
-  → 1030  TRADE_UNACCEPT     UnacceptTradingComposer
-  ← 560   TRADE_ACCEPTED     TradingAcceptEvent(userId, accepted)
+  incoming 490   TRADE_ACCEPT       AcceptTradingComposer
+  incoming 1030  TRADE_UNACCEPT     UnacceptTradingComposer
+  outgoing 560   TRADE_ACCEPTED     TradingAcceptEvent(userId, accepted)
 ```
 
 When both have accepted:
 
 ```
-  ← 3138  TRADE_CONFIRMATION  TradingConfirmationEvent   → client enters COUNTDOWN
-  → 2662  TRADE_CONFIRM       ConfirmAcceptTradingComposer
-  ← 1070  TRADE_COMPLETED     TradingCompletedEvent
+  outgoing 3138  TRADE_CONFIRMATION  TradingConfirmationEvent   incoming client enters COUNTDOWN
+  incoming 2662  TRADE_CONFIRM       ConfirmAcceptTradingComposer
+  outgoing 1070  TRADE_COMPLETED     TradingCompletedEvent
 ```
 
 Aborting at any point:
 
 ```
-  → 3639  TRADE_CLOSE          CloseTradingComposer
-  → 1217  TRADE_CANCEL          ConfirmDeclineTradingComposer
-  ← 699   TRADE_CLOSED         TradingCloseEvent
-  ← 3556  TRADE_NOT_OPEN       TradingNotOpenEvent
+  incoming 3639  TRADE_CLOSE          CloseTradingComposer
+  incoming 1217  TRADE_CANCEL          ConfirmDeclineTradingComposer
+  outgoing 699   TRADE_CLOSED         TradingCloseEvent
+  outgoing 3556  TRADE_NOT_OPEN       TradingNotOpenEvent
 ```
 
 After `1070` push both users a fresh inventory delta — the trade window closes but the inventory does not refresh itself.
@@ -845,25 +845,25 @@ After `1070` push both users a fresh inventory delta — the trade window closes
 **Owner:** `src/hooks/friends/useFriends.ts`, `useMessenger.ts`.
 
 ```
-  → 3278  MESSENGER_INIT     MessengerInitMessageComposer
-  ← 1590  MESSENGER_INIT     MessengerInitEvent     friend list capacity and config
+  incoming 3278  MESSENGER_INIT     MessengerInitMessageComposer
+  outgoing 1590  MESSENGER_INIT     MessengerInitEvent     friend list capacity and config
 ```
 
 Note `1590` is `MESSENGER_INIT` incoming and `NAVIGATOR_INIT` outgoing. Same number, opposite directions.
 
 ```
-  → 3679  FRIEND_LIST_UPDATE   FriendListUpdateMessageComposer
-  ← 2641  MESSENGER_FRIENDS    FriendListFragmentMessageEvent   fragmented, like furni
-  ← 3611  MESSENGER_UPDATE     FriendListUpdateEvent            deltas: added / removed / online
+  incoming 3679  FRIEND_LIST_UPDATE   FriendListUpdateMessageComposer
+  outgoing 2641  MESSENGER_FRIENDS    FriendListFragmentMessageEvent   fragmented, like furni
+  outgoing 3611  MESSENGER_UPDATE     FriendListUpdateEvent            deltas: added / removed / online
 ```
 
 Requests:
 
 ```
-  → 3797  GET_FRIEND_REQUESTS  GetFriendRequestsMessageComposer  ← 1120  FriendRequestsEvent
-  → 1     REQUEST_FRIEND       RequestFriendMessageComposer      ← 1860  NewFriendRequestEvent (to the target)
-  → 1772  ACCEPT_FRIEND        AcceptFriendMessageComposer(count, ...userIds)
-  → 2778  DECLINE_FRIEND       DeclineFriendMessageComposer(removeAll, count, ...userIds)
+  incoming 3797  GET_FRIEND_REQUESTS  GetFriendRequestsMessageComposer  outgoing 1120  FriendRequestsEvent
+  incoming 1     REQUEST_FRIEND       RequestFriendMessageComposer      outgoing 1860  NewFriendRequestEvent (to the target)
+  incoming 1772  ACCEPT_FRIEND        AcceptFriendMessageComposer(count, ...userIds)
+  incoming 2778  DECLINE_FRIEND       DeclineFriendMessageComposer(removeAll, count, ...userIds)
 ```
 
 `REQUEST_FRIEND` really is opcode `1`.
@@ -871,9 +871,9 @@ Requests:
 Messaging:
 
 ```
-  → 3357  MESSENGER_CHAT           SendMsgMessageComposer(userId, message)
-  ← 468   MESSENGER_CHAT           NewConsoleMessageEvent
-  ← 358   MESSENGER_MESSAGE_ERROR  MessengerErrorEvent
+  incoming 3357  MESSENGER_CHAT           SendMsgMessageComposer(userId, message)
+  outgoing 468   MESSENGER_CHAT           NewConsoleMessageEvent
+  outgoing 358   MESSENGER_MESSAGE_ERROR  MessengerErrorEvent
 ```
 
 As with room chat, the sender sees their message only via the `468` echo.
@@ -881,8 +881,8 @@ As with room chat, the sender sees their message only via the `468` echo.
 Room invites:
 
 ```
-  → 617   SEND_ROOM_INVITE   SendRoomInviteMessageComposer(count, ...userIds, message)
-  ← 3194  MESSENGER_INVITE   RoomInviteEvent
+  incoming 617   SEND_ROOM_INVITE   SendRoomInviteMessageComposer(count, ...userIds, message)
+  outgoing 3194  MESSENGER_INVITE   RoomInviteEvent
 ```
 
 `AcceptFriendMessageComposer`, `DeclineFriendMessageComposer` and `SendRoomInviteMessageComposer` all flatten a user-id array with an explicit count in front. The count is a **single int32**, not part of the array — see [Part D](#part-d--known-traps).
@@ -892,21 +892,21 @@ Room invites:
 ## 11. User profile & respects
 
 ```
-  → 847   USER_PROFILE   GetExtendedProfileMessageComposer(userId, flag)
-  ← 1918  USER_PROFILE   ExtendedProfileMessageEvent
+  incoming 847   USER_PROFILE   GetExtendedProfileMessageComposer(userId, flag)
+  outgoing 1918  USER_PROFILE   ExtendedProfileMessageEvent
 ```
 
 `1918` carries the whole profile card: user data, group memberships, friend count, whether a request is pending, and account age.
 
 ```
-  → 3219  MESSENGER_RELATIONSHIPS  UserRelationshipsComposer(userId)
-  ← 3360  MESSENGER_RELATIONSHIPS  RelationshipStatusInfoEvent
-  → 1773  SET_RELATIONSHIP_STATUS  SetRelationshipStatusMessageComposer(userId, relationshipStatus)
+  incoming 3219  MESSENGER_RELATIONSHIPS  UserRelationshipsComposer(userId)
+  outgoing 3360  MESSENGER_RELATIONSHIPS  RelationshipStatusInfoEvent
+  incoming 1773  SET_RELATIONSHIP_STATUS  SetRelationshipStatusMessageComposer(userId, relationshipStatus)
 ```
 
 ```
-  → 3770  USER_RESPECT   RespectUserMessageComposer(userId)
-  ← 2686  USER_RESPECT   RespectNotificationMessageEvent
+  incoming 3770  USER_RESPECT   RespectUserMessageComposer(userId)
+  outgoing 2686  USER_RESPECT   RespectNotificationMessageEvent
 ```
 
 The client decrements its local respect counter optimistically from the value in `UserObjectEvent`, so keep your server-side count aligned or the button re-enables at the wrong time.
@@ -916,8 +916,8 @@ The client decrements its local respect counter optimistically from the value in
 ## 12. Avatar & wardrobe
 
 ```
-  → 3339  USER_FIGURE   UpdateFigureDataMessageComposer(gender, figure)
-  ← 132   USER_FIGURE   FigureUpdateEvent
+  incoming 3339  USER_FIGURE   UpdateFigureDataMessageComposer(gender, figure)
+  outgoing 132   USER_FIGURE   FigureUpdateEvent
 ```
 
 `3339` is `USER_FIGURE` outgoing and `ROOM_FORWARD` incoming — another same-number, opposite-direction pair.
@@ -925,8 +925,8 @@ The client decrements its local respect counter optimistically from the value in
 If the user is in a room, also broadcast `UserChangeMessageEvent` so everyone else re-renders the avatar.
 
 ```
-  → 2210  GET_WARDROBE           GetWardrobeMessageComposer(pageId)
-  → 116   SAVE_WARDROBE_OUTFIT   SaveWardrobeOutfitMessageComposer(slotId, look, gender)
+  incoming 2210  GET_WARDROBE           GetWardrobeMessageComposer(pageId)
+  incoming 116   SAVE_WARDROBE_OUTFIT   SaveWardrobeOutfitMessageComposer(slotId, look, gender)
 ```
 
 ⚠️ The reply to `2210` is `WardrobeMessageEvent`, whose opcode constant `USER_OUTFITS` is still the placeholder `-1`. **The wardrobe cannot currently receive its data** — the event is registered under a negative id that no packet can match. Fix `IncomingHeader.USER_OUTFITS` before building this server-side.
@@ -936,19 +936,19 @@ If the user is in a room, also broadcast `UserChangeMessageEvent` so everyone el
 ## 13. Room settings & ownership
 
 ```
-  → 2603  GET_GUEST_ROOM   GetGuestRoomMessageComposer(roomId, enterRoom, forwardRoom)
-  ← 3042  ROOM_INFO        GetGuestRoomResultEvent
+  incoming 2603  GET_GUEST_ROOM   GetGuestRoomMessageComposer(roomId, enterRoom, forwardRoom)
+  outgoing 3042  ROOM_INFO        GetGuestRoomResultEvent
 ```
 
 `3042` is used everywhere, not just settings — the navigator, the room info window, and the group views all listen for it.
 
 ```
-  → 256   ROOM_SETTINGS       GetRoomSettingsMessageComposer(roomId)
-  ← 791   ROOM_SETTINGS       RoomSettingsDataEvent
-  → 725   ROOM_SETTINGS_SAVE  SaveRoomSettingsMessageComposer(...)
-  ← 1783  ROOM_SETTINGS_SAVE  RoomSettingsSavedEvent
-  ← 3030  ROOM_INFO_UPDATED   RoomInfoUpdatedEvent
-  ← RoomSettingsSaveErrorEvent  on validation failure
+  incoming 256   ROOM_SETTINGS       GetRoomSettingsMessageComposer(roomId)
+  outgoing 791   ROOM_SETTINGS       RoomSettingsDataEvent
+  incoming 725   ROOM_SETTINGS_SAVE  SaveRoomSettingsMessageComposer(...)
+  outgoing 1783  ROOM_SETTINGS_SAVE  RoomSettingsSavedEvent
+  outgoing 3030  ROOM_INFO_UPDATED   RoomInfoUpdatedEvent
+  outgoing RoomSettingsSaveErrorEvent  on validation failure
 ```
 
 After a successful save, send `1783` **and** `3030` — the first closes the dialog, the second refreshes the navigator entry.
@@ -956,10 +956,10 @@ After a successful save, send `1783` **and** `3030` — the first closes the dia
 Rights:
 
 ```
-  → 342   ROOM_RIGHTS_LIST        GetFlatControllersMessageComposer(roomId)  ← FlatControllersEvent
-  → 373   ROOM_RIGHTS_GIVE        AssignRightsMessageComposer               ← FlatControllerAddedEvent
-  → 3444  ROOM_RIGHTS_REMOVE      RemoveRightsMessageComposer(count, ...userIds)
-  → 159   ROOM_RIGHTS_REMOVE_ALL  RemoveAllRightsMessageComposer(roomId)
+  incoming 342   ROOM_RIGHTS_LIST        GetFlatControllersMessageComposer(roomId)  outgoing FlatControllersEvent
+  incoming 373   ROOM_RIGHTS_GIVE        AssignRightsMessageComposer               outgoing FlatControllerAddedEvent
+  incoming 3444  ROOM_RIGHTS_REMOVE      RemoveRightsMessageComposer(count, ...userIds)
+  incoming 159   ROOM_RIGHTS_REMOVE_ALL  RemoveAllRightsMessageComposer(roomId)
 ```
 
 ---
@@ -967,18 +967,18 @@ Rights:
 ## 14. Groups
 
 ```
-  → 1683  GROUP_INFO          GetHabboGroupDetailsMessageComposer(groupId, flag)
-  ← 2847  GROUP_INFO          HabboGroupDetailsMessageEvent
-  → 1337  GROUP_MEMBERS       GetGuildMembersMessageComposer(...)
-  ← 403   GROUP_MEMBERS       GuildMembersMessageEvent
+  incoming 1683  GROUP_INFO          GetHabboGroupDetailsMessageComposer(groupId, flag)
+  outgoing 2847  GROUP_INFO          HabboGroupDetailsMessageEvent
+  incoming 1337  GROUP_MEMBERS       GetGuildMembersMessageComposer(...)
+  outgoing 403   GROUP_MEMBERS       GuildMembersMessageEvent
 ```
 
 Creation is a two-step wizard:
 
 ```
-  → 2989  GROUP_CREATE_OPTIONS  GetGuildCreationInfoMessageComposer   ← GuildCreationInfoMessageEvent
-  → 207   GROUP_BUY           CreateGuildMessageComposer(name, description, roomId, colorA, colorB, badgeLen, ...badge)
-  ← GuildCreatedMessageEvent  /  ← GuildEditFailedMessageEvent
+  incoming 2989  GROUP_CREATE_OPTIONS  GetGuildCreationInfoMessageComposer   outgoing GuildCreationInfoMessageEvent
+  incoming 207   GROUP_BUY           CreateGuildMessageComposer(name, description, roomId, colorA, colorB, badgeLen, ...badge)
+  outgoing GuildCreatedMessageEvent  /  outgoing GuildEditFailedMessageEvent
 ```
 
 Membership management (`ApproveMembershipRequestMessageComposer`, `KickMemberMessageComposer`, `AddAdminRightsToMemberMessageComposer`, …) all reply with either a refreshed `GuildMembersMessageEvent` or `GuildMemberMgmtFailedMessageEvent`.
@@ -990,25 +990,25 @@ Membership management (`ApproveMembershipRequestMessageComposer`, `KickMemberMes
 ## 15. Wired
 
 ```
-  → 1869  WIRED_OPEN   OpenMessageComposer(furniId)
+  incoming 1869  WIRED_OPEN   OpenMessageComposer(furniId)
 ```
 
 The server replies with whichever variant matches the furni:
 
 ```
-  ← 1265  WIRED_TRIGGER    WiredFurniTriggerEvent
-  ← 2552  WIRED_ACTION     WiredFurniActionEvent
-  ← 2250  WIRED_CONDITION  WiredFurniConditionEvent
-  ← 2635  WIRED_OPEN       OpenEvent
+  outgoing 1265  WIRED_TRIGGER    WiredFurniTriggerEvent
+  outgoing 2552  WIRED_ACTION     WiredFurniActionEvent
+  outgoing 2250  WIRED_CONDITION  WiredFurniConditionEvent
+  outgoing 2635  WIRED_OPEN       OpenEvent
 ```
 
 Saving:
 
 ```
-  → 3953  WIRED_TRIGGER_SAVE    UpdateTriggerMessageComposer
-  → 2197  WIRED_ACTION_SAVE     UpdateActionMessageComposer
-  → 767   WIRED_CONDITION_SAVE  UpdateConditionMessageComposer
-  ← 1192  WIRED_SAVE            WiredSaveSuccessEvent
+  incoming 3953  WIRED_TRIGGER_SAVE    UpdateTriggerMessageComposer
+  incoming 2197  WIRED_ACTION_SAVE     UpdateActionMessageComposer
+  incoming 767   WIRED_CONDITION_SAVE  UpdateConditionMessageComposer
+  outgoing 1192  WIRED_SAVE            WiredSaveSuccessEvent
 ```
 
 These save composers are the **worst offenders for array flattening** — `UpdateActionMessageComposer` alone carries six separate count-then-array blocks (int params, stuff ids, furni sources, user sources, variable ids, and a second stuff-id list). Read the Part 1 table in `EVENTS.MD` field by field. Every count is one int32; the array that follows has no length prefix of its own.
@@ -1020,11 +1020,11 @@ These save composers are the **worst offenders for array flattening** — `Updat
 Gated on `UserRightsMessageEvent` security level. **Owner:** `src/components/mod-tools/`.
 
 ```
-  → 3230  MOD_TOOL_USER_INFO   GetModeratorUserInfoMessageComposer(userId)   ← 2866 ModeratorUserInfoEvent
-  → 1504  MODTOOL_REQUEST_ROOM_INFO  GetModeratorRoomInfoMessageComposer(roomId)   ← 3129 ModeratorRoomInfoEvent
-  → 1346  MODTOOL_REQUEST_ROOM_CHATLOG  GetRoomChatlogMessageComposer   ← RoomChatlogEvent
-  → 1686  MODTOOL_REQUEST_USER_CHATLOG  GetUserChatlogMessageComposer   ← UserChatlogEvent
-  → 903   MODTOOL_REQUEST_USER_ROOMS  GetRoomVisitsMessageComposer    ← RoomVisitsEvent
+  incoming 3230  MOD_TOOL_USER_INFO   GetModeratorUserInfoMessageComposer(userId)   outgoing 2866 ModeratorUserInfoEvent
+  incoming 1504  MODTOOL_REQUEST_ROOM_INFO  GetModeratorRoomInfoMessageComposer(roomId)   outgoing 3129 ModeratorRoomInfoEvent
+  incoming 1346  MODTOOL_REQUEST_ROOM_CHATLOG  GetRoomChatlogMessageComposer   outgoing RoomChatlogEvent
+  incoming 1686  MODTOOL_REQUEST_USER_CHATLOG  GetUserChatlogMessageComposer   outgoing UserChatlogEvent
+  incoming 903   MODTOOL_REQUEST_USER_ROOMS  GetRoomVisitsMessageComposer    outgoing RoomVisitsEvent
 ```
 
 Actions — `ModAlertMessageComposer`, `ModKickMessageComposer`, `ModBanMessageComposer`, `ModMuteMessageComposer`, `ModTradingLockMessageComposer`, `ModeratorActionMessageComposer` — are fire-and-forget from the client's perspective. The target sees the effect through `ModeratorMessageEvent`, `ModeratorCautionEvent`, or `UserBannedMessageEvent`.
@@ -1032,10 +1032,10 @@ Actions — `ModAlertMessageComposer`, `ModKickMessageComposer`, `ModBanMessageC
 Ticket queue:
 
 ```
-  → 3400  PICK_ISSUES             PickIssuesMessageComposer(count, ...issueIds, retry, retryCount, message)
-  → 3986  CLOSE_ISSUES            CloseIssuesMessageComposer(resolutionType, count, ...issueIds)
-  → 3977  RELEASE_ISSUES          ReleaseIssuesMessageComposer(count, ...issueIds)
-  ← IssueInfoMessageEvent / IssueDeletedMessageEvent / IssuePickFailedMessageEvent
+  incoming 3400  PICK_ISSUES             PickIssuesMessageComposer(count, ...issueIds, retry, retryCount, message)
+  incoming 3986  CLOSE_ISSUES            CloseIssuesMessageComposer(resolutionType, count, ...issueIds)
+  incoming 3977  RELEASE_ISSUES          ReleaseIssuesMessageComposer(count, ...issueIds)
+  outgoing IssueInfoMessageEvent / IssueDeletedMessageEvent / IssuePickFailedMessageEvent
 ```
 
 All three use count-then-array.
@@ -1045,15 +1045,15 @@ All three use count-then-array.
 ## 17. Help / call for help
 
 ```
-  → 732   CALL_FOR_HELP               CallForHelpMessageComposer(message, topicIndex, reportedUserId, reportedRoomId, chatEntries.length / 2, ...chatEntries)
-  ← 2631  CFH_RESULT_MESSAGE          CallForHelpResultMessageEvent
+  incoming 732   CALL_FOR_HELP               CallForHelpMessageComposer(message, topicIndex, reportedUserId, reportedRoomId, chatEntries.length / 2, ...chatEntries)
+  outgoing 2631  CFH_RESULT_MESSAGE          CallForHelpResultMessageEvent
 ```
 
 The count here is `chatEntries.length / 2` because the array is flattened pairs — one int32, then the interleaved entries.
 
 ```
-  → 92    GET_PENDING_CALLS_FOR_HELP  GetPendingCallsForHelpMessageComposer
-  ← 2987  CFH_PENDING_CALLS           CallForHelpPendingCallsMessageEvent
+  incoming 92    GET_PENDING_CALLS_FOR_HELP  GetPendingCallsForHelpMessageComposer
+  outgoing 2987  CFH_PENDING_CALLS           CallForHelpPendingCallsMessageEvent
 ```
 
 ⚠️ `EVENTS.MD` currently documents `2987` (the reply) as having **no payload**. It does: `int32 count`, then n × (string callId, string timeStamp, string message). The same mis-documentation affects `CallForHelpReplyMessageEvent` and the four `ChatReviewSession*` events. Read the parser sources directly until the doc is regenerated.
@@ -1065,18 +1065,18 @@ The count here is `chatEntries.length / 2` because the array is flattened pairs 
 `src/hooks/notification/useNotification.ts` listens to 21 events and sends nothing. These are all server-initiated; there is no request half.
 
 ```
-  ← HabboBroadcastMessageEvent       hotel-wide announcement
-  ← MOTDNotificationEvent            message of the day
-  ← NotificationDialogMessageEvent   generic keyed dialog
-  ← CustomUserNotificationMessageEvent
-  ← HabboAchievementNotificationMessageEvent
-  ← ModeratorMessageEvent / ModeratorCautionEvent
-  ← UserBannedMessageEvent
-  ← InfoHotelClosingMessageEvent / InfoHotelClosedMessageEvent / LoginFailedHotelClosedMessageEvent
-  ← MaintenanceStatusMessageEvent
-  ← PetLevelNotificationEvent / PetReceivedMessageEvent
-  ← RespectNotificationMessageEvent
-  ← ClubGiftNotificationEvent
+  outgoing HabboBroadcastMessageEvent       hotel-wide announcement
+  outgoing MOTDNotificationEvent            message of the day
+  outgoing NotificationDialogMessageEvent   generic keyed dialog
+  outgoing CustomUserNotificationMessageEvent
+  outgoing HabboAchievementNotificationMessageEvent
+  outgoing ModeratorMessageEvent / ModeratorCautionEvent
+  outgoing UserBannedMessageEvent
+  outgoing InfoHotelClosingMessageEvent / InfoHotelClosedMessageEvent / LoginFailedHotelClosedMessageEvent
+  outgoing MaintenanceStatusMessageEvent
+  outgoing PetLevelNotificationEvent / PetReceivedMessageEvent
+  outgoing RespectNotificationMessageEvent
+  outgoing ClubGiftNotificationEvent
 ```
 
 `NotificationDialogMessageEvent` is the general-purpose one: it takes a localization key and a parameter map, and the client resolves the display text from its own translation files. Sending an unknown key renders the raw key.
@@ -1106,6 +1106,6 @@ The count here is `chatEntries.length / 2` because the array is flattened pairs 
 
 **`UserSettingsOldChatComposer` is unsendable.** It is imported into `NitroMessages.ts` and used at `src/components/user-settings/UserSettingsView.tsx:31`, but never registered with `_composers.set(...)`. The opcode `USER_SETTINGS_OLD_CHAT = 1149` exists. Toggling that setting currently sends nothing.
 
-**Parsers documented as empty that are not.** 33 server→client entries in `EVENTS.MD` claim "empty — header only, no payload read" but read a real payload. They cluster in group, help/chat-review, pet, poll, sound, and youtube, plus `ROOM_FORWARD` (whose parser class is misspelled `RoomFowardParser`). Trust the parser source over the doc for these.
+**Parsers documented as empty that are not.** 33 serverincomingclient entries in `EVENTS.MD` claim "empty — header only, no payload read" but read a real payload. They cluster in group, help/chat-review, pet, poll, sound, and youtube, plus `ROOM_FORWARD` (whose parser class is misspelled `RoomFowardParser`). Trust the parser source over the doc for these.
 
 **`bytesAvailable` guards mean optional trailing blocks.** A parser that checks `wrapper.bytesAvailable` before reading is tolerating older servers that omit that block. You may leave it off; you may not send a partial one.

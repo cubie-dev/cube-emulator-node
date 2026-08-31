@@ -1,0 +1,1 @@
+export type Primitive = boolean|string|number|bigint|null;

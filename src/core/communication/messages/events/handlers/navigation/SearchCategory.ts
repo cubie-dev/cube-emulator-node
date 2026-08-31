@@ -32,6 +32,10 @@ export const parseSearchQuery = (query: string): SearchQuery | null => {
     const prefix = trimmed.slice(0, separator).toLowerCase();
     const value = trimmed.slice(separator + 1).trim();
 
+    if (! value) {
+        return null;
+    }
+
     if (separator === -1 || !CATEGORIES.includes(prefix) || !value) {
         return {
             category: SearchCategory.ROOM_NAME,

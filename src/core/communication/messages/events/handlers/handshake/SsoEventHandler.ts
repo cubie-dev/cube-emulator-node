@@ -4,13 +4,14 @@ import { EventHandler } from '../../EventHandler';
 import { User } from '../../../../../database/entities/User';
 import { AuthenticatedResponse } from '../../../responses/handshake/AuthenticatedResponse';
 import { inject } from 'inversify';
-import { type IGameServer, GAME_SERVER_TOKEN } from '../../../../../../api/core/communication/SocketServer';
+import { type GameServer, GAME_SERVER_TOKEN } from '../../../../../../api/core/communication/GameServer.ts';
 import { UserInfoResponse } from '../../../responses/user/UserInfoResponse';
 import { FigureUpdateResponse } from '../../../responses/user/FigureUpdateEvent';
+import { HomeRoomResponse } from '../../../responses/user/HomeRoomResponse.ts';
 
 export class SsoEventHandler extends EventHandler {
     public constructor(
-        @inject(GAME_SERVER_TOKEN) private readonly socketServer: IGameServer,
+        @inject(GAME_SERVER_TOKEN) private readonly socketServer: GameServer,
     ) {
         super();
     }
@@ -35,9 +36,10 @@ export class SsoEventHandler extends EventHandler {
         context.client.user = user;
 
         return [
-            new AuthenticatedResponse(),
+            new AuthenticatedResponse(user),
             new UserInfoResponse(user),
             new FigureUpdateResponse(user),
+            new HomeRoomResponse(user),
         ];
     }
 }

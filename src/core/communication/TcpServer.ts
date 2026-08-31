@@ -1,13 +1,13 @@
 import { inject } from 'inversify';
 import { type Socket, type TCPSocketListener } from 'bun';
 import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../api/core/config/Repository';
-import { type IGameServer } from '../../api/core/communication/SocketServer';
+import { type GameServer } from '../../api/core/communication/GameServer.ts';
 import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
 import { Client } from './Client';
 import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';
 import { LogLevel } from '../logging/LogLevel';
 
-export class TcpServer implements IGameServer {
+export class TcpServer implements GameServer {
     private server?: TCPSocketListener<Client>;
     private clients: Client[] = [];
 
@@ -27,7 +27,6 @@ export class TcpServer implements IGameServer {
             port,
             socket: {
                 open: (socket: Socket<Client>) => {
-                    console.log(socket);
                     const client = new Client(socket);
                     socket.data = client;
                     this.clients.push(client);

@@ -30,7 +30,7 @@ This is a Habbo Hotel emulator (game server) built on WebSockets with a custom b
 Inversify IoC container is central to the architecture. The `Emulator` class (created in `main.ts`) instantiates the container with `autobind: true`. All services are resolved through the container via `@inject()` decorators. The `api/` directory holds interfaces and tokens; `core/` holds implementations.
 
 Pattern: every injectable service has a corresponding interface + symbol token in `src/api/`, e.g.:
-- `src/api/core/communication/SocketServer.ts` → `IGameServer` + `GAME_SERVER_TOKEN`
+- `src/api/core/communication/GameServer.ts` → `GameServer` + `GAME_SERVER_TOKEN`
 - `src/core/communication/TcpServer.ts` → concrete implementation
 
 ### Bootstrap Sequence

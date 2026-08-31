@@ -1,4 +1,4 @@
-import { bitLength, fromByteArray, modPow, toUnsignedByteArray } from './BigIntUtils';
+import { bitLength, fromByteArray, modPow, toUnsignedByteArray } from './BigIntUtils.ts';
 
 export class HabboRSACrypto {
     private readonly e: bigint;

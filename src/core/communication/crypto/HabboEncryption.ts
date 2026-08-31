@@ -1,5 +1,5 @@
-import { HabboRSACrypto } from './HabboRSACrypto';
-import { HabboDiffieHellman } from './HabboDiffieHellman';
+import { HabboRSACrypto } from './HabboRSACrypto.ts';
+import { HabboDiffieHellman } from './HabboDiffieHellman.ts';
 
 export class HabboEncryption {
     public readonly rsa: HabboRSACrypto;

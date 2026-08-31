@@ -1,7 +1,7 @@
 import { type Socket } from 'bun';
 import { type User } from '../database/entities/User';
-import type { HabboEncryption } from '../crypto/HabboEncryption';
-import { HabboRC4 } from '../crypto/HabboRC4';
+import type { HabboEncryption } from './crypto/HabboEncryption';
+import { HabboRC4 } from './crypto/HabboRC4';
 
 export class Client {
     private _user?: User;

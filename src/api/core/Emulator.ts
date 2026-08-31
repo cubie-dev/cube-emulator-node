@@ -7,6 +7,7 @@ export interface IEmulator {
     startTime: Date;
     rootContainer: Container;
     events: EventEmitter;
+    newChildContainer: Container;
 }
 
 export const EMULATOR_TOKEN = Symbol.for('IEmulator');

@@ -1,6 +1,6 @@
 import { type ISocketMessageHandler } from '../../../api/core/communication/MessageHandler';
 import { Client } from '../Client';
-import { inject } from 'inversify';
+import { inject, tagged } from 'inversify';
 import {
     EVENT_HANDLER_REGISTRY_TOKEN,
     type IEventHandlerRegistry
@@ -19,6 +19,10 @@ import { FlushPipe } from '../pipes/FlushPipe';
 import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../../api/core/database/DatabaseManager';
 import { type Class } from '../../support/types/Class';
 import { UnknownHandlerError } from './UnknownHandlerError.ts';
+import {
+    EVENT_CONTEXT_FACTORY_TOKEN,
+    type IEventContextFactory
+} from '../../../api/core/communication/EventContextFactory.ts';
 
 export class SocketMessageHandler implements ISocketMessageHandler {
     public constructor(
@@ -26,32 +30,17 @@ export class SocketMessageHandler implements ISocketMessageHandler {
         @inject(EMULATOR_TOKEN) private emulator: IEmulator,
         @inject(LOGGER_TOKEN) private logger: ILogger,
         @inject(CODEC_TOKEN) private codec: ICodec,
-        @inject(CONFIG_REPOSITORY_TOKEN) private configRepository: IRepository,
-        @inject(DATABASE_MANAGER_TOKEN) private databaseManager: IDatabaseManager,
+        @inject(EVENT_CONTEXT_FACTORY_TOKEN) private eventContextFactory: IEventContextFactory,
     ) {
-    }
-
-    private async dispatchHandler(
-        eventContext: EventContext,
-        handler: Class<EventHandler>
-    ): Promise<Response | Response[] | null> {
-        return this.emulator.rootContainer
-            .get<EventHandler>(handler)
-            .handle(
-                eventContext,
-            );
     }
 
     public async handle(client: Client, data: Buffer): Promise<void> {
         const event = this.codec.decode(data);
         const pipeline = new Pipeline<EventContext, Response>(
-            this.emulator.rootContainer
+            this.emulator.rootContainer,
         );
-        const eventContext = new EventContext(
-            client,
-            event,
-            this.databaseManager.newEntityManager,
-        );
+
+        const eventContext = this.eventContextFactory.create(client, event);
 
         try {
             const response = await pipeline
@@ -80,6 +69,15 @@ export class SocketMessageHandler implements ISocketMessageHandler {
                 this.logger.log('Network', LogLevel.ERROR, `Error while handling ${event.header}: ${e.message}`);
             }
         }
+    }
+
+    private async dispatchHandler(
+        eventContext: EventContext,
+        handler: Class<EventHandler>
+    ): Promise<Response | Response[] | null> {
+        return eventContext.container
+            .get(handler)
+            .handle(eventContext);
     }
 
     private async flushAndRespond(context: EventContext, response: Response | Response[]): Promise<void> {

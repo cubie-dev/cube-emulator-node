@@ -10,14 +10,14 @@ export class UserInfoResponse extends Response {
         this.addData(user.username);
         this.addData(user.look);
         this.addData(user.gender);
-        this.addData(''); // motto TODO
+        this.addData(''); // motto TODO / customdata
         this.addData(''); //real name TODO?
         this.addData(false); // direct mail
-        this.addData(user.stats.respectReceived);
-        this.addData(0); // respect given today
-        this.addData(0); // petRespectsToGiveToday
-        this.addData(false); //stream publish allowed
-        this.addData('01-01-1970 00:00:00');
+        this.addData(user.stats.respectReceived); // respectTotal
+        this.addData(0); // respectLeft
+        this.addData(0); // petRespectLeft
+        this.addData(false); //streamPublishingAllowed
+        this.addData('01-01-1970 00:00:00'); // lastAccessDate
         this.addData(false); // allowNameChange
         this.addData(false); //safety locked
     }

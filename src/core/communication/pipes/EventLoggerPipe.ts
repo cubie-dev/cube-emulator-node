@@ -12,10 +12,11 @@ export class EventLoggerPipe implements PipeClass<EventContext, Response> {
     }
 
     public async handle(eventContext: EventContext, next: Destination<EventContext, Response>): Promise<Response[] | Response | null> {
+        const inspect = eventContext.event.reader.inspect();
         this.logger.log(
             'Network',
             LogLevel.INFO,
-            `Got header: ${eventContext.event.header}`
+            `[${eventContext.event.header}] ${inspect}`
         );
 
         const response = await next(eventContext);

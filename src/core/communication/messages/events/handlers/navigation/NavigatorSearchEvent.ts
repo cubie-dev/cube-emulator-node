@@ -87,6 +87,10 @@ export class NavigatorSearchEvent extends EventHandler {
 
         const value = this.escapeLike(search.value);
 
+        if (! value) {
+            return null;
+        }
+
         if (search.category === SearchCategory.OWNER) {
             return { owner: { username: { $ilike: `%${value}%` } } };
         }

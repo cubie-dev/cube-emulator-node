@@ -30,4 +30,9 @@ export class Emulator implements IEmulator {
     public get version(): string {
         return packageJson.version;
     }
+
+    public get newChildContainer(): Container
+    {
+        return new Container({ parent: this.rootContainer });
+    }
 }

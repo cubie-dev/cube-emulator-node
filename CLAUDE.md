@@ -58,7 +58,7 @@ Incoming WebSocket binary frames flow:
 
 - `BinaryReader` / `BinaryWriter` in `src/core/communication/messages/` handle the wire format
 - `Response` subclasses expose a `data` getter returning an array of primitives; `Codec` type-switches on `typeof` to pick the right write method
-- Message headers map event IDs (shorts) to handler classes in `src/core/communication/messages/events/eventHandlerMap.ts`
+- Message headers map event IDs (shorts) to handler classes in `src/core/communication/events`
 
 ### Database
 

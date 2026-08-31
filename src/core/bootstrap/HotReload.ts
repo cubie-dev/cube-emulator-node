@@ -4,7 +4,7 @@ import {
 } from '../../api/core/communication/EventHandlerRegistry';
 import { type IEmulator } from '../../api/core/Emulator';
 import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
-import { eventHandlerMap } from '../communication/messages/events/eventHandlerMap';
+import { eventHandlerMap } from '../communication/events/eventHandlerMap';
 import { LogLevel } from '../logging/LogLevel';
 
 /**

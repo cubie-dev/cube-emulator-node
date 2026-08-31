@@ -1,45 +1,30 @@
-import { EventHandler } from '../../EventHandler';
-import { EventContext } from '../../EventContext';
-import { NavigatorSearchResponse } from '../../../responses/navigator/NavigatorSearchResponse';
-import { Room } from '../../../../../database/entities/Room';
+import type { EntityManager } from '@mikro-orm/postgresql';
+import { injectable } from 'inversify';
+import { Room } from '../../core/database/entities/Room';
 import { parseSearchQuery, SearchCategory, type SearchQuery } from './SearchCategory';
-import { type FilterQuery } from '@mikro-orm/core';
+import type { FilterQuery } from '@mikro-orm/core';
+import { User } from '../../core/database/entities/User';
+import { EventContext } from '../../core/communication/events/EventContext';
 
-export class NavigatorSearchEvent extends EventHandler {
-    public async handle(eventContext: EventContext): Promise<NavigatorSearchResponse> {
-        const requestedView = eventContext.event.reader.readString();
-        const searchQuery = eventContext.event.reader.readString();
+@injectable()
+export class GetRoomsHandler {
+    public constructor(
+        private readonly eventContext: EventContext,
+    ) {}
 
+    public async handle(
+        user: User,
+        view: string,
+        searchQuery: string = '',
+    ): Promise<Room[]> {
         // requesting the rooms in the view that match the search
-        const rooms = await this.getRooms(eventContext, requestedView, searchQuery);
+        const viewFilter = this.viewFilter(view);
 
-        const roomsPerCategory = rooms.reduce<Record<string, Room[]>>((acc, room) => {
-            const category = room.category.name;
-
-            if (!acc[category]) {
-                acc[category] = [];
-            }
-
-            acc[category].push(room);
-
-            return acc;
-        }, {});
-
-        return new NavigatorSearchResponse(
-            requestedView,
-            searchQuery,
-            roomsPerCategory,
-        );
-    }
-
-    private async getRooms(eventContext: EventContext, requestedView: string, query: string): Promise<Room[]> {
-        const view = this.viewFilter(eventContext, requestedView);
-
-        if (!view) {
+        if (!viewFilter) {
             return [];
         }
 
-        const search = parseSearchQuery(query);
+        const search = parseSearchQuery(searchQuery);
 
         // Groups are not modelled yet, so a group search can never match a room.
         if (search?.category === SearchCategory.GROUP) {
@@ -48,10 +33,11 @@ export class NavigatorSearchEvent extends EventHandler {
 
         const matches = this.searchFilter(search);
 
-        return eventContext.em
+        return this.eventContext
+            .em
             .getRepository(Room)
             .find(
-                matches ? { $and: [view, matches] } : view,
+                matches ? { $and: [viewFilter, matches] } : viewFilter,
                 { populate: ['category', 'owner'] }
             );
     }
@@ -60,17 +46,17 @@ export class NavigatorSearchEvent extends EventHandler {
      * The set of rooms the requested view is allowed to show, before searching.
      * An unknown view — or `myworld_view` for a client without a user — shows none.
      */
-    private viewFilter(eventContext: EventContext, requestedView: string): FilterQuery<Room> | null {
-        if (requestedView === 'official_view') {
+    private viewFilter(view: string): FilterQuery<Room> | null {
+        if (view === 'official_view') {
             return { isPublic: true };
         }
 
-        if (requestedView === 'hotel_view') {
+        if (view === 'hotel_view') {
             return { isPublic: false };
         }
 
-        if (requestedView === 'myworld_view' && eventContext.client.user) {
-            return { owner: eventContext.client.user.id };
+        if (view === 'myworld_view' && this.eventContext.client.user) {
+            return { owner: this.eventContext.client.user.id };
         }
 
         return null;
@@ -124,4 +110,5 @@ export class NavigatorSearchEvent extends EventHandler {
     private escapeLike(value: string): string {
         return value.replace(/[\\%_]/g, '\\$&');
     }
+
 }

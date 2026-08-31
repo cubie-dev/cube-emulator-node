@@ -1,6 +1,6 @@
 import { Response } from '../Response';
 import { ResponseHeader } from '../ResponseHeader';
-import { type NavigatorCategory } from '../../../../database/entities/NavigatorCategory';
+import { type NavigatorCategory } from '../../../database/entities/NavigatorCategory';
 
 export class NavigatorCategoriesResponse extends Response {
     public constructor(categories: NavigatorCategory[]) {

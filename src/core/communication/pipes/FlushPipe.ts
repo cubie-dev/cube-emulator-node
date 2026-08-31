@@ -1,15 +1,17 @@
+import { injectable } from 'inversify';
 import { type Destination, type PipeClass } from '../../support/pipeline/Pipeline';
-import { Response } from '../messages/responses/Response';
-import { EventContext } from '../messages/events/EventContext';
+import { type Response } from '../responses/Response';
+import { EventContext } from '../events/EventContext';
 
-/**
- * Responsible for flushing all changes before sending the response back to the client.
- */
-export class FlushPipe implements PipeClass<EventContext, Response> {
-    public async handle(event: EventContext, next: Destination<EventContext, Response>): Promise<Response[] | Response | null> {
-        const response = await next(event);
+@injectable()
+export class FlushPipe implements PipeClass<EventContext, EventContext, Response | Response[]> {
+    public async handle(
+        eventContext: EventContext,
+        next: Destination<EventContext, Response | Response[]>,
+    ): Promise<Response | Response[] | null> {
+        const response = await next(eventContext);
 
-        await event.em.flush();
+        await eventContext.em.flush();
 
         return response;
     }

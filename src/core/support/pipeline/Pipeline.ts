@@ -1,51 +1,64 @@
 import { Container } from 'inversify';
-import { isClass } from '../helpers/isClass';
-import { type Class } from '../types/Class';
+import { type Class } from '../Class';
 
-export type Destination<T, R> = (event: T) => Promise<R | R[] | null>;
-export type PipeFunction<T, R> = (event: T, next: Destination<T, R>) => Promise<R | R[] | null>;
-export interface PipeClass<T, R> {
-    handle(event: T, next: Destination<T, R>): Promise<R | R[] | null>;
+export type Destination<TOut, TFinal> = (value: TOut) => Promise<TFinal | null>;
+
+// TIn:    what this pipe receives
+// TOut:   what it passes to next()
+// TInner: what next() returns (the inner chain's result)
+// TOuter: what handle() returns to its caller (defaults to TInner for pass-through pipes)
+export interface PipeClass<TIn, TOut, TInner, TOuter = TInner> {
+    handle(input: TIn, next: Destination<TOut, TInner>): Promise<TOuter | null>;
 }
 
-export class Pipeline<T, R> {
-    private payload!: T;
-    private pipes: Array<PipeFunction<T, R>|Class<PipeClass<T, R>>> = [];
-
+export class PipelineBuilder<TCurrent, TInner, TOuter> {
     public constructor(
-        private container: Container
+        private readonly container: Container,
+        private readonly runner: (destination: Destination<TCurrent, TInner>) => Promise<TOuter | null>,
     ) {}
 
-    public send(payload: T): this {
-        this.payload = payload;
-
-        return this;
+    // Regular pipe: passes TInner through unchanged (TOuter stays the same)
+    public pipe<TNext>(
+        pipeClass: Class<PipeClass<TCurrent, TNext, TInner>>,
+    ): PipelineBuilder<TNext, TInner, TOuter> {
+        return new PipelineBuilder<TNext, TInner, TOuter>(
+            this.container,
+            (destination) =>
+                this.runner((current) =>
+                    this.container
+                        .get<PipeClass<TCurrent, TNext, TInner>>(pipeClass)
+                        .handle(current, destination)
+                ),
+        );
     }
 
-    public through(pipes: Array<PipeFunction<T, R>|Class<PipeClass<T, R>>>): this {
-        this.pipes = pipes;
-
-        return this;
+    // Wrapping pipe: transforms TInner → TNewInner for the inner chain, while TOuter stays fixed
+    public wrap<TNext, TNewInner>(
+        pipeClass: Class<PipeClass<TCurrent, TNext, TNewInner, TInner>>,
+    ): PipelineBuilder<TNext, TNewInner, TOuter> {
+        return new PipelineBuilder<TNext, TNewInner, TOuter>(
+            this.container,
+            (destination) =>
+                this.runner((current) =>
+                    this.container
+                        .get<PipeClass<TCurrent, TNext, TNewInner, TInner>>(pipeClass)
+                        .handle(current, destination)
+                ),
+        );
     }
 
-    public async then(destination: Destination<T, R>): Promise<R | R[] | null> {
-        const pipeline = this.pipes
-            .reverse()
-            .reduce<Destination<T, R>>(
-                (initial: Destination<T, R>, pipe: PipeFunction<T, R>|Class<PipeClass<T, R>>) => {
-                    return (event: T) => {
-                        if (isClass(pipe)) {
-                            return this.container
-                                .get<PipeClass<T, R>>(pipe)
-                                .handle(event, initial);
-                        }
+    public then(destination: Destination<TCurrent, TInner>): Promise<TOuter | null> {
+        return this.runner(destination);
+    }
+}
 
-                        return pipe(event, initial);
-                    };
-                },
-                (event: T) => destination(event)
-            );
+export class Pipeline<TInitial, TFinal> {
+    public constructor(private readonly container: Container) {}
 
-        return await pipeline(this.payload);
+    public send(payload: TInitial): PipelineBuilder<TInitial, TFinal, TFinal> {
+        return new PipelineBuilder<TInitial, TFinal, TFinal>(
+            this.container,
+            (destination) => destination(payload),
+        );
     }
 }

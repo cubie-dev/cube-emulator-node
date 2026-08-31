@@ -1,8 +1,8 @@
 import { inject } from 'inversify';
 import { EventHandler } from '../../EventHandler';
 import type { EventContext } from '../../EventContext';
-import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../../../../../api/core/config/Repository';
-import { HabboEncryption } from '../../../../../crypto/HabboEncryption';
+import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../../../../api/core/config/Repository';
+import { HabboEncryption } from '../../../crypto/HabboEncryption';
 import { InitDiffieHandshakeResponse } from '../../../responses/handshake/InitDiffieHandshakeResponse';
 
 export class InitDiffieHandshakeEvent extends EventHandler {

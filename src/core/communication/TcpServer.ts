@@ -1,7 +1,7 @@
 import { inject } from 'inversify';
 import { type Socket, type TCPSocketListener } from 'bun';
 import { CONFIG_REPOSITORY_TOKEN, type IRepository } from '../../api/core/config/Repository';
-import { type GameServer } from '../../api/core/communication/GameServer.ts';
+import { type GameServer } from '../../api/core/communication/GameServer';
 import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
 import { Client } from './Client';
 import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';

@@ -1,10 +1,10 @@
-import { Event } from './messages/events/Event';
-import { BinaryReader } from './messages/BinaryReader';
-import { Response } from './messages/responses/Response';
-import { BinaryWriter } from './messages/BinaryWriter';
+import { Event } from './events/Event';
+import { BinaryReader } from './BinaryReader';
+import { Response } from './responses/Response';
+import { BinaryWriter } from './BinaryWriter';
 import { type ICodec } from '../../api/core/communication/Codec';
 import { isMapLike } from '../support/helpers/isMapLike';
-import type { Primitive } from '../support/helpers/Primitive.ts';
+import type { Primitive } from '../support/helpers/Primitive';
 
 export class Codec implements ICodec {
     public decode(data: Buffer): Event {

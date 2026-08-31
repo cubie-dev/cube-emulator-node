@@ -1,5 +1,5 @@
-import { generateProbablePrime, modPow, toUnsignedByteArray } from './BigIntUtils.ts';
-import type { HabboRSACrypto } from './HabboRSACrypto.ts';
+import { generateProbablePrime, modPow, toUnsignedByteArray } from './BigIntUtils';
+import type { HabboRSACrypto } from './HabboRSACrypto';
 
 export class HabboDiffieHellman {
     private static readonly BITS = 128;

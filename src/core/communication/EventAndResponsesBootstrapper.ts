@@ -1,12 +1,12 @@
 import { Bootstrapper } from '../bootstrap/Bootstrapper';
-import { EventHandlerRegistry } from './messages/EventHandlerRegistry';
-import { eventHandlerMap } from './messages/events/eventHandlerMap';
+import { EventHandlerRegistry } from './EventHandlerRegistry';
+import { eventHandlerMap } from './events/eventHandlerMap';
 import { EVENT_HANDLER_REGISTRY_TOKEN, type IEventHandlerRegistry } from '../../api/core/communication/EventHandlerRegistry';
 import {
     EVENT_CONTEXT_FACTORY_TOKEN,
     type IEventContextFactory
-} from '../../api/core/communication/EventContextFactory.ts';
-import { EventContextFactory } from './messages/events/EventContextFactory.ts';
+} from '../../api/core/communication/EventContextFactory';
+import { EventContextFactory } from './events/EventContextFactory';
 
 export class EventAndResponsesBootstrapper extends Bootstrapper {
     public override async registerBindings(): Promise<void> {

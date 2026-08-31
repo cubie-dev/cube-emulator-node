@@ -1,6 +1,6 @@
 import { Response } from '../Response';
 import { ResponseHeader } from '../ResponseHeader';
-import { User } from '../../../../database/entities/User';
+import { User } from '../../../database/entities/User';
 
 export class HomeRoomResponse extends Response {
     public constructor(user: User) {

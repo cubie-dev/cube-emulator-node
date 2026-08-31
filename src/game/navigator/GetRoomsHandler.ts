@@ -1,10 +1,10 @@
 import type { EntityManager } from '@mikro-orm/postgresql';
 import { injectable } from 'inversify';
-import { Room } from '../../core/database/entities/Room.ts';
-import { parseSearchQuery, SearchCategory, type SearchQuery } from './SearchCategory.ts';
+import { Room } from '../../core/database/entities/Room';
+import { parseSearchQuery, SearchCategory, type SearchQuery } from './SearchCategory';
 import type { FilterQuery } from '@mikro-orm/core';
-import { User } from '../../core/database/entities/User.ts';
-import { EventContext } from '../../core/communication/messages/events/EventContext.ts';
+import { User } from '../../core/database/entities/User';
+import { EventContext } from '../../core/communication/events/EventContext';
 
 @injectable()
 export class GetRoomsHandler {

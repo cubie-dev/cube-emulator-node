@@ -8,7 +8,7 @@ import { CompleteDiffieHandshakeEvent } from './handlers/handshake/CompleteDiffi
 import { NavigationInitEvent } from './handlers/navigation/NavigationInitEvent';
 import { NavigatorSearchEvent } from './handlers/navigation/NavigatorSearchEvent';
 import { RoomCreateEvent } from './handlers/navigation/RoomCreateEvent';
-import { type Class } from '../../../support/types/Class';
+import { type Class } from '../../support/Class';
 
 const eventHandlerMap = new Map<number, Class<EventHandler>>();
 

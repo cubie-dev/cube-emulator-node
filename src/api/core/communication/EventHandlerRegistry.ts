@@ -1,5 +1,5 @@
-import { EventHandler } from '../../../core/communication/messages/events/EventHandler';
-import { type Class } from '../../../core/support/types/Class';
+import { EventHandler } from '../../../core/communication/events/EventHandler';
+import { type Class } from '../../../core/support/Class';
 
 export interface IEventHandlerRegistry {
     overwriteHandlers(handlers: Map<number, Class<EventHandler>>): void;

@@ -1,13 +1,13 @@
 import { Response } from '../../../responses/Response';
 import { EventContext } from '../../EventContext';
 import { EventHandler } from '../../EventHandler';
-import { User } from '../../../../../database/entities/User';
+import { User } from '../../../../database/entities/User';
 import { AuthenticatedResponse } from '../../../responses/handshake/AuthenticatedResponse';
 import { inject } from 'inversify';
-import { type GameServer, GAME_SERVER_TOKEN } from '../../../../../../api/core/communication/GameServer.ts';
+import { type GameServer, GAME_SERVER_TOKEN } from '../../../../../api/core/communication/GameServer';
 import { UserInfoResponse } from '../../../responses/user/UserInfoResponse';
 import { FigureUpdateResponse } from '../../../responses/user/FigureUpdateEvent';
-import { HomeRoomResponse } from '../../../responses/user/HomeRoomResponse.ts';
+import { HomeRoomResponse } from '../../../responses/user/HomeRoomResponse';
 
 export class SsoEventHandler extends EventHandler {
     public constructor(

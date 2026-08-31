@@ -1,4 +1,4 @@
-import { Client } from '../../Client';
+import { Client } from '../Client';
 import { Event } from './Event';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Container } from 'inversify';

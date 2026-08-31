@@ -1,13 +1,13 @@
 import { ConfigBootstrapper } from './config/ConfigBootstrapper';
 import { type IEmulator } from '../api/core/Emulator';
 import { Bootstrapper } from './bootstrap/Bootstrapper';
-import { type GameServer, GAME_SERVER_TOKEN } from '../api/core/communication/GameServer.ts';
+import { type GameServer, GAME_SERVER_TOKEN } from '../api/core/communication/GameServer';
 import { NetworkBootstrapper } from './communication/NetworkBootstrapper';
 import { LoggingBootstrapper } from './logging/LoggingBootstrapper';
 import { DatabaseBootstrapper } from './database/DatabaseBootstrapper';
-import { type Class } from './support/types/Class';
-import { type ILogger, LOGGER_TOKEN } from '../api/core/logger/Logger.ts';
-import { LogLevel } from './logging/LogLevel.ts';
+import { type Class } from './support/Class';
+import { type ILogger, LOGGER_TOKEN } from '../api/core/logger/Logger';
+import { LogLevel } from './logging/LogLevel';
 
 export class EmulatorBootstrapper {
     /**

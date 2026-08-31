@@ -1,6 +1,6 @@
-import type { EventContext } from '../../../core/communication/messages/events/EventContext.ts';
-import type { Client } from '../../../core/communication/Client.ts';
-import { Event } from '../../../core/communication/messages/events/Event.ts';
+import type { EventContext } from '../../../core/communication/events/EventContext';
+import type { Client } from '../../../core/communication/Client';
+import { Event } from '../../../core/communication/events/Event';
 
 
 export interface IEventContextFactory {

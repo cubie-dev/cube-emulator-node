@@ -1,6 +1,6 @@
 import { Response } from '../Response';
 import { ResponseHeader } from '../ResponseHeader';
-import type { User } from '../../../../database/entities/User.ts';
+import type { User } from '../../../database/entities/User';
 
 export class AuthenticatedResponse extends Response {
     public constructor(user: User) {

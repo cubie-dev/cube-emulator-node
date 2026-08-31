@@ -1,9 +1,9 @@
 import { type EventContext } from '../../EventContext';
 import { EventHandler } from '../../EventHandler';
 import { RoomCreatedResponse } from '../../../responses/navigator/RoomCreatedResponse';
-import { Room } from '../../../../../database/entities/Room';
-import { NavigatorCategory } from '../../../../../database/entities/NavigatorCategory';
-import { TradeType } from '../../../../../database/enums/TradeType';
+import { Room } from '../../../../database/entities/Room';
+import { NavigatorCategory } from '../../../../database/entities/NavigatorCategory';
+import { TradeType } from '../../../../database/enums/TradeType';
 
 export class RoomCreateEvent extends EventHandler {
     public async handle(eventContext: EventContext): Promise<RoomCreatedResponse | null> {

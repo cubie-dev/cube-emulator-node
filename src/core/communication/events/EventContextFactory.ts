@@ -1,10 +1,10 @@
-import { EventContext } from './EventContext.ts';
-import { Event } from './Event.ts';
+import { EventContext } from './EventContext';
+import { Event } from './Event';
 import { inject } from 'inversify';
-import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../../../api/core/database/DatabaseManager.ts';
-import type { IEventContextFactory } from '../../../../api/core/communication/EventContextFactory.ts';
-import type { Client } from '../../Client.ts';
-import { EMULATOR_TOKEN, type IEmulator } from '../../../../api/core/Emulator.ts';
+import { DATABASE_MANAGER_TOKEN, type IDatabaseManager } from '../../../api/core/database/DatabaseManager';
+import type { IEventContextFactory } from '../../../api/core/communication/EventContextFactory';
+import type { Client } from '../Client';
+import { EMULATOR_TOKEN, type IEmulator } from '../../../api/core/Emulator';
 
 export class EventContextFactory implements IEventContextFactory {
     public constructor(

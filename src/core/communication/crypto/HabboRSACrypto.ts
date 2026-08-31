@@ -1,4 +1,4 @@
-import { bitLength, fromByteArray, modPow, toUnsignedByteArray } from './BigIntUtils.ts';
+import { bitLength, fromByteArray, modPow, toUnsignedByteArray } from './BigIntUtils';
 
 export class HabboRSACrypto {
     private readonly e: bigint;
@@ -68,7 +68,9 @@ function pkcs1Pad(
     let i = end - 1;
     let n = blockSize;
 
-    while (i >= p && n > 11) result[--n] = src[i--];
+    while (i >= p && n > 11) {
+        result[--n] = src[i--];
+    }
     result[--n] = 0;
     if (padType === 2) {
         while (n > 2) {

@@ -1,4 +1,4 @@
-import { type Class } from '../types/Class';
+import { type Class } from '../Class';
 
 export const isClass = (check: any): check is Class<any> => {
     return typeof check === 'function' &&

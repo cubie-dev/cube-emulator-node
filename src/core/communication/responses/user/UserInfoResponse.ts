@@ -1,5 +1,5 @@
 import { Response } from '../Response';
-import { User } from '../../../../database/entities/User';
+import { User } from '../../../database/entities/User';
 import { ResponseHeader } from '../ResponseHeader';
 
 export class UserInfoResponse extends Response {

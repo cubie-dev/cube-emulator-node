@@ -1,10 +1,10 @@
 import { EventHandler } from '../../EventHandler';
 import { EventContext } from '../../EventContext';
 import { NavigatorSearchResponse } from '../../../responses/navigator/NavigatorSearchResponse';
-import { Room } from '../../../../../database/entities/Room';
-import { parseSearchQuery, SearchCategory, type SearchQuery } from '../../../../../../game/navigator/SearchCategory.ts';
+import { Room } from '../../../../database/entities/Room';
+import { parseSearchQuery, SearchCategory, type SearchQuery } from '../../../../../game/navigator/SearchCategory';
 import { type FilterQuery } from '@mikro-orm/core';
-import { GetRoomsHandler } from '../../../../../../game/navigator/GetRoomsHandler.ts';
+import { GetRoomsHandler } from '../../../../../game/navigator/GetRoomsHandler';
 import { injectable } from 'inversify';
 
 @injectable()

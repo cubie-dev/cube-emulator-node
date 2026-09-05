@@ -1,20 +1,20 @@
 import { inject, injectable } from 'inversify';
 import { type Destination, type PipeClass } from '../../support/pipeline/Pipeline';
-import { type Response } from '../responses/Response';
+import { type Composer } from '../composers/Composer.ts';
 import { type ILogger, LOGGER_TOKEN } from '../../../api/core/logger/Logger';
 import { LogLevel } from '../../logging/LogLevel';
 import { EventContext } from '../events/EventContext';
 
 @injectable()
-export class EventLoggerPipe implements PipeClass<EventContext, EventContext, Response | Response[]> {
+export class EventLoggerPipe implements PipeClass<EventContext, EventContext, Composer | Composer[]> {
     public constructor(
         @inject(LOGGER_TOKEN) private readonly logger: ILogger,
     ) {}
 
     public async handle(
         eventContext: EventContext,
-        next: Destination<EventContext, Response | Response[]>,
-    ): Promise<Response | Response[] | null> {
+        next: Destination<EventContext, Composer | Composer[]>,
+    ): Promise<Composer | Composer[] | null> {
         const inspect = eventContext.event.reader.inspect();
         this.logger.log('Network', LogLevel.INFO, `[${eventContext.event.header}] ${inspect}`);
 

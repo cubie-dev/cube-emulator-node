@@ -1,10 +1,14 @@
 import { Event } from './events/Event';
 import { BinaryReader } from './BinaryReader';
-import { Response } from './responses/Response';
+import { Composer } from './composers/Composer.ts';
 import { BinaryWriter } from './BinaryWriter';
 import { type ICodec } from '../../api/core/communication/Codec';
 import { isMapLike } from '../support/helpers/isMapLike';
 import type { Primitive } from '../support/helpers/Primitive';
+import { Composable } from './composers/Composable.ts';
+import type { ComposableData } from './ComposableData.ts';
+
+export type TypeOf = 'number'|'boolean'|'string'|'null'|'object'|'array'|'arraybuffer'|'map'|'composable';
 
 export class Codec implements ICodec {
     public decode(data: Buffer): Event {
@@ -20,27 +24,38 @@ export class Codec implements ICodec {
         );
     }
 
-    public encode(response: Response): ArrayBuffer {
+    public encode(response: Composer): ArrayBuffer {
         const data = response.data;
         const writer = new BinaryWriter();
 
         writer.writeShort(response.header);
 
-        for (const item of data) {
-            let type: string = typeof item;
+        this.write(writer, data);
+
+        const buffer = writer.getBuffer();
+
+        return new BinaryWriter()
+            .writeInt(buffer.byteLength)
+            .writeBytes(buffer)
+            .getBuffer();
+    }
+
+    private write(writer: BinaryWriter, items: ComposableData[]): void {
+        for (const item of items) {
+            let type = typeof item as TypeOf;
 
             if (type === 'object') {
                 if (item === null) {
                     type = 'null';
+                } else if (item instanceof Composable) {
+                    type = 'composable';
                 }
-                    // else if(item instanceof Byte) type = 'byte';
-                // else if(item instanceof Short) type = 'short';
                 else if (item instanceof ArrayBuffer) {
                     type = 'arraybuffer';
-                } else if (isMapLike(item)) {
-                    type = 'map';
                 } else if (Array.isArray(item)) {
                     type = 'array';
+                } else if (isMapLike(item)) {
+                    type = 'map';
                 }
             }
 
@@ -56,11 +71,10 @@ export class Codec implements ICodec {
                 case 'array':
                     // TODO this of cource isn't always a short. Should be changed in the future
                     writer.writeInt((item as unknown[]).length);
-                    (item as unknown[]).forEach((byte) => {
-                        writer.writeShort(byte as number);
-                    });
+
+                    this.write(writer, item as ComposableData[]);
                     break;
-                case 'map': {
+                case 'map':
                     const entries = Object.entries(item as Record<string | number, unknown>);
                     writer.writeInt(entries.length);
                     for (const [key, value] of entries) {
@@ -68,19 +82,14 @@ export class Codec implements ICodec {
                         this.writePrimitive(writer, value as Primitive);
                     }
                     break;
-                }
+                case 'composable':
+                    this.write(writer, (item as Composable).getData());
+                    break;
                 default:
                     writer.writeByte(0);
                     break;
             }
         }
-
-        const buffer = writer.getBuffer();
-
-        return new BinaryWriter()
-            .writeInt(buffer.byteLength)
-            .writeBytes(buffer)
-            .getBuffer();
     }
 
     private writePrimitive(writer: BinaryWriter, value: Primitive) {

@@ -1,8 +1,8 @@
 import { Event } from '../../../core/communication/events/Event';
-import { Response } from '../../../core/communication/responses/Response';
+import { Composer } from '../../../core/communication/composers/Composer.ts';
 
 export interface ICodec {
-    encode(response: Response): ArrayBuffer;
+    encode(response: Composer): ArrayBuffer;
     decode(data: Buffer): Event;
 }
 

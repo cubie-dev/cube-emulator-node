@@ -1,6 +1,6 @@
-import { Response } from '../responses/Response';
+import { Composer } from '../composers/Composer.ts';
 import { EventContext } from './EventContext';
 
 export abstract class EventHandler {
-    public abstract handle(eventContext: EventContext): Promise<Response|Response[]|null>|Response|Response[]|null;
+    public abstract handle(eventContext: EventContext): Promise<Composer | Composer[] | null> | Composer | Composer[] | null;
 }

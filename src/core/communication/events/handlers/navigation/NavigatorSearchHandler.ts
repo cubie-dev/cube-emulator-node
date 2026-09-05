@@ -1,6 +1,6 @@
 import { EventHandler } from '../../EventHandler';
 import { EventContext } from '../../EventContext';
-import { NavigatorSearchResponse } from '../../../responses/navigator/NavigatorSearchResponse';
+import { NavigatorSearchComposer } from '../../../composers/navigator/NavigatorSearchComposer.ts';
 import { Room } from '../../../../database/entities/Room';
 import { parseSearchQuery, SearchCategory, type SearchQuery } from '../../../../../game/navigator/SearchCategory';
 import { type FilterQuery } from '@mikro-orm/core';
@@ -8,18 +8,18 @@ import { GetRoomsHandler } from '../../../../../game/navigator/GetRoomsHandler';
 import { injectable } from 'inversify';
 
 @injectable()
-export class NavigatorSearchEvent extends EventHandler {
+export class NavigatorSearchHandler extends EventHandler {
     public constructor(
         private readonly getRoomsHandler: GetRoomsHandler
     ) {
         super();
     }
 
-    public async handle(eventContext: EventContext): Promise<NavigatorSearchResponse | null> {
+    public async handle(eventContext: EventContext): Promise<NavigatorSearchComposer | null> {
         const requestedView = eventContext.event.reader.readString();
         const searchQuery = eventContext.event.reader.readString();
 
-        if (! eventContext.client.user) {
+        if (!eventContext.client.user) {
             return null;
         }
 
@@ -41,7 +41,7 @@ export class NavigatorSearchEvent extends EventHandler {
             return acc;
         }, {});
 
-        return new NavigatorSearchResponse(
+        return new NavigatorSearchComposer(
             requestedView,
             searchQuery,
             roomsPerCategory,

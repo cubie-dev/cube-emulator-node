@@ -3,7 +3,7 @@ import { type GameServer, GAME_SERVER_TOKEN } from '../../api/core/communication
 import { TcpServer } from './TcpServer';
 import { type ISocketMessageHandler, SOCKET_MESSAGE_HANDLER_TOKEN } from '../../api/core/communication/MessageHandler';
 import { SocketMessageHandler } from './SocketMessageHandler';
-import { EventAndResponsesBootstrapper } from './EventAndResponsesBootstrapper';
+import { EventsAndComposersBootstrapper } from './EventsAndComposersBootstrapper.ts';
 import { Codec } from './Codec';
 import { CODEC_TOKEN, type ICodec } from '../../api/core/communication/Codec';
 import { type Class } from '../support/Class';
@@ -34,7 +34,7 @@ export class NetworkBootstrapper extends Bootstrapper {
 
     public override bootstraps(): Class<Bootstrapper>[] {
         return [
-            EventAndResponsesBootstrapper
+            EventsAndComposersBootstrapper
         ];
     }
 }

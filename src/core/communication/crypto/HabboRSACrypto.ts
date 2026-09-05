@@ -69,7 +69,7 @@ function pkcs1Pad(
     let n = blockSize;
 
     while (i >= p && n > 11) {
-        result[--n] = src[i--];
+        result[--n] = src[i--]!;
     }
     result[--n] = 0;
     if (padType === 2) {

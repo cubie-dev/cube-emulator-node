@@ -1,13 +1,13 @@
-import { Response } from '../../../responses/Response';
+import { type Composer } from '../../../composers/Composer.ts';
 import { EventContext } from '../../EventContext';
 import { EventHandler } from '../../EventHandler';
 import { User } from '../../../../database/entities/User';
-import { AuthenticatedResponse } from '../../../responses/handshake/AuthenticatedResponse';
+import { AuthenticatedComposer } from '../../../composers/handshake/AuthenticatedComposer.ts';
 import { inject } from 'inversify';
 import { type GameServer, GAME_SERVER_TOKEN } from '../../../../../api/core/communication/GameServer';
-import { UserInfoResponse } from '../../../responses/user/UserInfoResponse';
-import { FigureUpdateResponse } from '../../../responses/user/FigureUpdateEvent';
-import { HomeRoomResponse } from '../../../responses/user/HomeRoomResponse';
+import { UserInfoComposer } from '../../../composers/user/UserInfoComposer.ts';
+import { FigureUpdateComposer } from '../../../composers/user/FigureUpdateComposer.ts';
+import { HomeRoomComposer } from '../../../composers/user/HomeRoomComposer.ts';
 
 export class SsoEventHandler extends EventHandler {
     public constructor(
@@ -16,7 +16,7 @@ export class SsoEventHandler extends EventHandler {
         super();
     }
 
-    public async handle(context: EventContext): Promise<Response[]> {
+    public async handle(context: EventContext): Promise<Composer[]> {
         const authToken = context.event.reader.readString();
 
         const user = await context.em.getRepository(User).findOne({
@@ -36,10 +36,10 @@ export class SsoEventHandler extends EventHandler {
         context.client.user = user;
 
         return [
-            new AuthenticatedResponse(user),
-            new UserInfoResponse(user),
-            new FigureUpdateResponse(user),
-            new HomeRoomResponse(user),
+            new AuthenticatedComposer(user),
+            new UserInfoComposer(user),
+            new FigureUpdateComposer(user),
+            new HomeRoomComposer(),
         ];
     }
 }

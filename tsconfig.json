@@ -19,8 +19,9 @@
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
         "noImplicitOverride": true,
+        "noUnusedLocals": true,
         "types": [
-            "bun-types"
+            "bun"
         ]
     }
 }

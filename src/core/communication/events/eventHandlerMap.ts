@@ -9,6 +9,7 @@ import { NavigationInitEvent } from './handlers/navigation/NavigationInitEvent';
 import { NavigatorSearchEvent } from './handlers/navigation/NavigatorSearchEvent';
 import { RoomCreateEvent } from './handlers/navigation/RoomCreateEvent';
 import { type Class } from '../../support/Class';
+import { GetGuestRoomEventHandler } from './handlers/navigation/GetGuestRoomEvent.ts';
 
 const eventHandlerMap = new Map<number, Class<EventHandler>>();
 
@@ -24,6 +25,7 @@ eventHandlerMap.set(EventHeader.HANDSHAKE_COMPLETE_DIFFIE, CompleteDiffieHandsha
 eventHandlerMap.set(EventHeader.NAVIGATOR_SEARCH, NavigatorSearchEvent);
 eventHandlerMap.set(EventHeader.NAVIGATOR_INIT, NavigationInitEvent);
 eventHandlerMap.set(EventHeader.ROOM_CREATE, RoomCreateEvent);
+eventHandlerMap.set(EventHeader.GET_GUEST_ROOM, GetGuestRoomEventHandler);
 
 export {
     eventHandlerMap

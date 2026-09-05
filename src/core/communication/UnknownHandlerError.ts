@@ -1,5 +1,5 @@
 export class UnknownHandlerError extends Error {
-    public constructor() {
-        super('Unknown package');
+    public constructor(header: number) {
+        super(`Unknown handler for header ${header}`);
     }
 }

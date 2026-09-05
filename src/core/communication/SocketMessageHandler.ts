@@ -43,7 +43,7 @@ export class SocketMessageHandler implements ISocketMessageHandler {
                     const handler = this.handlerRegistry.getByHeader(context.event.header);
 
                     if (!handler) {
-                        throw new UnknownHandlerError();
+                        throw new UnknownHandlerError(context.event.header);
                     }
 
                     return await this.dispatchHandler(context, handler);

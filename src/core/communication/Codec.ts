@@ -3,12 +3,7 @@ import { BinaryReader } from './BinaryReader';
 import { Composer } from './composers/Composer.ts';
 import { BinaryWriter } from './BinaryWriter';
 import { type ICodec } from '../../api/core/communication/Codec';
-import { isMapLike } from '../support/helpers/isMapLike';
-import type { Primitive } from '../support/helpers/Primitive';
-import { Composable } from './composers/Composable.ts';
-import type { ComposableData } from './ComposableData.ts';
-
-export type TypeOf = 'number'|'boolean'|'string'|'null'|'object'|'array'|'arraybuffer'|'map'|'composable';
+import { isComposable, isMap, type ComposableData } from './ComposableData.ts';
 
 export class Codec implements ICodec {
     public decode(data: Buffer): Event {
@@ -30,7 +25,9 @@ export class Codec implements ICodec {
 
         writer.writeShort(response.header);
 
-        this.write(writer, data);
+        this.writeToWriter(writer, data);
+
+        console.log(writer.getBuffer());
 
         const buffer = writer.getBuffer();
 
@@ -40,77 +37,57 @@ export class Codec implements ICodec {
             .getBuffer();
     }
 
-    private write(writer: BinaryWriter, items: ComposableData[]): void {
+    private writeToWriter(
+        writer: BinaryWriter,
+        item: ComposableData|ComposableData[],
+    ): void {
+        const items = Array.isArray(item) ? item : [item];
+
         for (const item of items) {
-            let type = typeof item as TypeOf;
-
-            if (type === 'object') {
-                if (item === null) {
-                    type = 'null';
-                } else if (item instanceof Composable) {
-                    type = 'composable';
-                }
-                else if (item instanceof ArrayBuffer) {
-                    type = 'arraybuffer';
-                } else if (Array.isArray(item)) {
-                    type = 'array';
-                } else if (isMapLike(item)) {
-                    type = 'map';
-                }
-            }
-
-            switch (type) {
-                case 'string':
-                case 'number':
-                case 'boolean':
-                    this.writePrimitive(writer, item as Primitive);
-                    break;
-                case 'arraybuffer':
-                    writer.writeBytes(item as ArrayBuffer);
-                    break;
-                case 'array':
-                    // TODO this of cource isn't always a short. Should be changed in the future
-                    writer.writeInt((item as unknown[]).length);
-
-                    this.write(writer, item as ComposableData[]);
-                    break;
-                case 'map':
-                    const entries = Object.entries(item as Record<string | number, unknown>);
-                    writer.writeInt(entries.length);
-                    for (const [key, value] of entries) {
-                        this.writePrimitive(writer, key);
-                        this.writePrimitive(writer, value as Primitive);
-                    }
-                    break;
-                case 'composable':
-                    this.write(writer, (item as Composable).getData());
-                    break;
-                default:
-                    writer.writeByte(0);
-                    break;
-            }
-        }
-    }
-
-    private writePrimitive(writer: BinaryWriter, value: Primitive) {
-        let type = typeof value;
-
-        switch (type) {
-            case 'string':
-                if (!value) {
-                    writer.writeShort(0);
-                } else {
-                    writer.writeString(value as string);
-                }
-                break;
-            case 'number':
-                writer.writeInt(value as number);
-                break;
-            case 'boolean':
-                writer.writeByte(value as boolean ? 1 : 0);
-                break;
-            default:
+            if (item === null) {
                 writer.writeByte(0);
+                return;
+            }
+
+            if (typeof item === 'string') {
+                item.length === 0 ? writer.writeShort(0) : writer.writeString(item);
+                return;
+            }
+
+            if (typeof item === 'number') {
+                writer.writeInt(item);
+                return;
+            }
+
+            if (typeof item === 'boolean') {
+                writer.writeByte(item ? 1 : 0);
+                return;
+            }
+
+            if (item instanceof ArrayBuffer) {
+                writer.writeBytes(item);
+                return;
+            }
+
+            if (isComposable(item)) {
+                this.writeToWriter(writer, item.getData());
+                return;
+            }
+
+            if (Array.isArray(item)) {
+                writer.writeInt(item.length);
+                this.writeToWriter(writer, item);
+                return;
+            }
+
+            if (isMap(item)) {
+                const entries = Object.entries(item);
+                writer.writeInt(entries.length);
+                for (const [key, value] of entries) {
+                    this.writeToWriter(writer, key);
+                    this.writeToWriter(writer, value);
+                }
+            }
         }
     }
 }

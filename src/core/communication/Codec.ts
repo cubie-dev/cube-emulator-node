@@ -25,9 +25,7 @@ export class Codec implements ICodec {
 
         writer.writeShort(response.header);
 
-        this.writeToWriter(writer, data);
-
-        console.log(writer.getBuffer());
+        this.writeFields(writer, data);
 
         const buffer = writer.getBuffer();
 
@@ -37,56 +35,50 @@ export class Codec implements ICodec {
             .getBuffer();
     }
 
-    private writeToWriter(
-        writer: BinaryWriter,
-        item: ComposableData|ComposableData[],
-    ): void {
-        const items = Array.isArray(item) ? item : [item];
+    private writeFields(writer: BinaryWriter, fields: ComposableData[]): void {
+        for (const field of fields) {
+            this.writeField(writer, field);
+        }
+    }
 
-        for (const item of items) {
-            if (item === null) {
-                writer.writeByte(0);
-                return;
-            }
+    private writeField(writer: BinaryWriter, field: ComposableData): void {
+        if (field === null) {
+            writer.writeByte(0);
+            return;
+        }
 
-            if (typeof item === 'string') {
-                item.length === 0 ? writer.writeShort(0) : writer.writeString(item);
-                return;
-            }
+        if (typeof field === 'string') {
+            field.length === 0 ? writer.writeShort(0) : writer.writeString(field);
+            return;
+        }
 
-            if (typeof item === 'number') {
-                writer.writeInt(item);
-                return;
-            }
+        if (typeof field === 'number') {
+            writer.writeInt(field);
+            return;
+        }
 
-            if (typeof item === 'boolean') {
-                writer.writeByte(item ? 1 : 0);
-                return;
-            }
+        if (typeof field === 'boolean') {
+            writer.writeByte(field ? 1 : 0);
+            return;
+        }
 
-            if (item instanceof ArrayBuffer) {
-                writer.writeBytes(item);
-                return;
-            }
+        if (field instanceof ArrayBuffer) {
+            writer.writeBytes(field);
+            return;
+        }
 
-            if (isComposable(item)) {
-                this.writeToWriter(writer, item.getData());
-                return;
-            }
+        if (isComposable(field)) {
+            this.writeFields(writer, field.getData());
+            return;
+        }
 
-            if (Array.isArray(item)) {
-                writer.writeInt(item.length);
-                this.writeToWriter(writer, item);
-                return;
-            }
+        if (isMap(field)) {
+            const entries = Object.entries(field);
+            writer.writeInt(entries.length);
 
-            if (isMap(item)) {
-                const entries = Object.entries(item);
-                writer.writeInt(entries.length);
-                for (const [key, value] of entries) {
-                    this.writeToWriter(writer, key);
-                    this.writeToWriter(writer, value);
-                }
+            for (const [key, value] of entries) {
+                this.writeField(writer, key);
+                this.writeField(writer, value);
             }
         }
     }

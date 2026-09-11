@@ -1,4 +1,4 @@
-export class ResponseHeader {
+export class ComposerHeader {
     public static ACHIEVEMENT_LIST = 1969;
     public static AUTHENTICATED = 230;
     public static AVAILABILITY_STATUS = 1350;

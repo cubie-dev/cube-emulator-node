@@ -1,9 +1,9 @@
 import { EventHandler } from '../../EventHandler';
 import type { EventContext } from '../../EventContext';
-import { CompleteDiffieHandshakeResponse } from '../../../responses/handshake/CompleteDiffieHandshakeResponse';
+import { CompleteDiffieHandshakeComposer } from '../../../composers/handshake/CompleteDiffieHandshakeComposer.ts';
 
-export class CompleteDiffieHandshakeEvent extends EventHandler {
-    public handle(context: EventContext): CompleteDiffieHandshakeResponse|null {
+export class CompleteDiffieHandshakeHandler extends EventHandler {
+    public handle(context: EventContext): CompleteDiffieHandshakeComposer | null {
         const { client } = context;
 
         if (!client.encryption) {
@@ -14,7 +14,7 @@ export class CompleteDiffieHandshakeEvent extends EventHandler {
         // Queue RC4 activation — applied after this response is sent (see Client.send)
         client.pendingSharedKey = client.encryption.dh.getSharedKey(clientPublicKey);
 
-        return new CompleteDiffieHandshakeResponse(
+        return new CompleteDiffieHandshakeComposer(
             client.encryption.dh.getPublicKey(),
             true,
         );

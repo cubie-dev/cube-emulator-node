@@ -8,7 +8,7 @@ import {
 import { EMULATOR_TOKEN, type IEmulator } from '../../api/core/Emulator';
 import { type ILogger, LOGGER_TOKEN } from '../../api/core/logger/Logger';
 import { EventContext } from './events/EventContext';
-import { type Response } from './responses/Response';
+import { type Composer } from './composers/Composer.ts';
 import { LogLevel } from '../logging/LogLevel';
 import { Pipeline } from '../support/pipeline/Pipeline';
 import { type EventHandler } from './events/EventHandler';
@@ -63,7 +63,7 @@ export class SocketMessageHandler implements ISocketMessageHandler {
     private async dispatchHandler(
         eventContext: EventContext,
         handler: Class<EventHandler>,
-    ): Promise<Response | Response[] | null> {
+    ): Promise<Composer | Composer[] | null> {
         return eventContext.container
             .get<EventHandler>(handler)
             .handle(eventContext);

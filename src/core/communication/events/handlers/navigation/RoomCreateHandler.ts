@@ -1,12 +1,12 @@
 import { type EventContext } from '../../EventContext';
 import { EventHandler } from '../../EventHandler';
-import { RoomCreatedResponse } from '../../../responses/navigator/RoomCreatedResponse';
+import { RoomCreatedComposer } from '../../../composers/navigator/RoomCreatedComposer.ts';
 import { Room } from '../../../../database/entities/Room';
 import { NavigatorCategory } from '../../../../database/entities/NavigatorCategory';
 import { TradeType } from '../../../../database/enums/TradeType';
 
-export class RoomCreateEvent extends EventHandler {
-    public async handle(eventContext: EventContext): Promise<RoomCreatedResponse | null> {
+export class RoomCreateHandler extends EventHandler {
+    public async handle(eventContext: EventContext): Promise<RoomCreatedComposer | null> {
         const { reader } = eventContext.event;
         const { em, client } = eventContext;
 
@@ -39,6 +39,6 @@ export class RoomCreateEvent extends EventHandler {
 
         await em.flush();
 
-        return new RoomCreatedResponse(room.id, room.name);
+        return new RoomCreatedComposer(room.id, room.name);
     }
 }

@@ -1,5 +1,4 @@
 import { EventHandler } from '../EventHandler';
-import { Response } from '../../responses/Response';
 import { EventContext } from '../EventContext';
 
 export class ReleaseVersionEventHandler extends EventHandler {

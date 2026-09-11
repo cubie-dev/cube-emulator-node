@@ -57,8 +57,8 @@ export function generateProbablePrime(bits: number): bigint {
     while (true) {
         const bytes = new Uint8Array(byteLen);
         crypto.getRandomValues(bytes);
-        bytes[0] |= 0x80;
-        bytes[byteLen - 1] |= 0x01;
+        bytes[0] = bytes[0]! | 0x80;
+        bytes[byteLen - 1] = bytes[byteLen - 1]! | 0x01;
         const candidate = BigInt('0x' + Buffer.from(bytes).toString('hex'));
         if (millerRabin(candidate, 20)) return candidate;
     }

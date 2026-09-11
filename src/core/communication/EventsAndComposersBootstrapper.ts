@@ -8,7 +8,7 @@ import {
 } from '../../api/core/communication/EventContextFactory';
 import { EventContextFactory } from './events/EventContextFactory';
 
-export class EventAndResponsesBootstrapper extends Bootstrapper {
+export class EventsAndComposersBootstrapper extends Bootstrapper {
     public override async registerBindings(): Promise<void> {
         this.emulator.rootContainer
             .bind<IEventHandlerRegistry>(EVENT_HANDLER_REGISTRY_TOKEN)
